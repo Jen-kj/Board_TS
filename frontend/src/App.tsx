@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import './App.css'
 import PostCompose, { PostDraftPayload } from './features/board/PostCompose'
 import HomePage, { BoardCategory, PostSummary } from './pages/HomePage'
 
@@ -10,9 +11,44 @@ function App(): JSX.Element {
     { id: 'bucket', name: '버킷리스트', type: 'general' },
     { id: 'review', name: '후기·추천', type: 'general' },
   ])
-  const [posts, setPosts] = useState<PostSummary[]>([])
+  const STORAGE_KEY = 'roamlog:posts'
+
+  const [posts, setPosts] = useState<PostSummary[]>(() => {
+    if (typeof window === 'undefined') {
+      return []
+    }
+    try {
+      const stored = window.localStorage.getItem(STORAGE_KEY)
+      if (!stored) {
+        return []
+      }
+      const parsed = JSON.parse(stored) as PostSummary[]
+      return Array.isArray(parsed) ? parsed : []
+    } catch (error) {
+      console.warn('Failed to parse stored posts', error)
+      return []
+    }
+  })
   const [currentPage, setCurrentPage] = useState<Page>('home')
   const [composeTargetCategoryId, setComposeTargetCategoryId] = useState<string>('')
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+    try {
+      const serialisable = posts.map((post) => ({
+        ...post,
+        thumbnailUrl:
+          post.thumbnailUrl && post.thumbnailUrl.startsWith('blob:')
+            ? undefined
+            : post.thumbnailUrl,
+      }))
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(serialisable))
+    } catch (error) {
+      console.warn('Failed to persist posts', error)
+    }
+  }, [posts])
 
   const handleRequestCompose = (categoryId: string): void => {
     setComposeTargetCategoryId(categoryId)

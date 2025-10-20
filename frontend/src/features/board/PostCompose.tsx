@@ -286,17 +286,17 @@ function PostCompose({
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-8 text-[#223142]">
+    <div className="mx-auto max-w-3xl px-6 py-8 text-[#1f2f5f]">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-[#223142]">새 여행 기록 작성</h1>
-        <p className="mt-2 text-sm text-[#3c5166]">
+        <h1 className="text-3xl font-bold text-[#1f2f5f]">새 여행 기록 작성</h1>
+        <p className="mt-2 text-sm text-[#36577a]">
           떠나고 싶은 여행 버킷리스트나 다녀온 후기, 추천 코스를 자유롭게 공유해 주세요.
         </p>
       </header>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="mb-2 block text-sm font-medium text-[#2d5671]" htmlFor="title">
+          <label className="mb-2 block text-sm font-medium text-[#36577a]" htmlFor="title">
             제목
           </label>
           <input
@@ -304,20 +304,20 @@ function PostCompose({
             type="text"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            className="w-full rounded border border-[#89c6f5]/45 bg-white/90 px-3 py-2 text-sm focus:border-[#5b97bb] focus:outline-none focus:ring-1 focus:ring-[#a6d4f8]/60"
+            className="w-full rounded border border-[#bad7f2]/55 bg-white/90 px-3 py-2 text-sm focus:border-[#7ea6cb] focus:outline-none focus:ring-1 focus:ring-[#bad7f2]/60"
             placeholder="예: 올 여름에 떠나는 홋카이도 로드트립"
           />
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-[#2d5671]" htmlFor="category">
+          <label className="mb-2 block text-sm font-medium text-[#36577a]" htmlFor="category">
             카테고리
           </label>
           <select
             id="category"
             value={categoryId}
             onChange={(event) => setCategoryId(event.target.value)}
-            className="w-full rounded border border-[#89c6f5]/45 bg-white/90 px-3 py-2 text-sm focus:border-[#5b97bb] focus:outline-none focus:ring-1 focus:ring-[#a6d4f8]/60"
+            className="w-full rounded border border-[#bad7f2]/55 bg-white/90 px-3 py-2 text-sm focus:border-[#7ea6cb] focus:outline-none focus:ring-1 focus:ring-[#bad7f2]/60"
           >
             <option value="" disabled>
               카테고리를 선택해 주세요
@@ -331,31 +331,31 @@ function PostCompose({
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-[#2d5671]">내용</label>
+          <label className="mb-2 block text-sm font-medium text-[#36577a]">내용</label>
           <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2 rounded border border-[#89c6f5]/45 bg-white/85 px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2 rounded border border-[#bad7f2]/55 bg-white/85 px-3 py-2">
               <button
                 type="button"
                 onClick={() => execCommand('bold')}
-                className="rounded px-2 py-1 text-xs font-medium text-[#223142] hover:bg-[#89c6f5]/20"
+                className="rounded px-2 py-1 text-xs font-medium text-[#1f2f5f] hover:bg-[#bad7f2]/20"
               >
                 굵게
               </button>
               <button
                 type="button"
                 onClick={() => execCommand('italic')}
-                className="rounded px-2 py-1 text-xs font-medium text-[#223142] hover:bg-white/80"
+                className="rounded px-2 py-1 text-xs font-medium text-[#1f2f5f] hover:bg-[#bad7f2]/15"
               >
                 기울임
               </button>
               <button
                 type="button"
                 onClick={() => execCommand('underline')}
-                className="rounded px-2 py-1 text-xs font-medium text-[#223142] hover:bg-white/80"
+                className="rounded px-2 py-1 text-xs font-medium text-[#1f2f5f] hover:bg-[#bad7f2]/15"
               >
                 밑줄
               </button>
-              <label className="flex items-center gap-2 text-xs font-medium text-[#3c5166]">
+              <label className="flex items-center gap-2 text-xs font-medium text-[#36577a]">
                 색상
                 <input
                   type="color"
@@ -366,7 +366,7 @@ function PostCompose({
                   }}
                 />
               </label>
-              <label className="cursor-pointer rounded border border-[#89c6f5]/60 px-2 py-1 text-xs font-medium text-[#223142] hover:bg-[#89c6f5]/10">
+              <label className="cursor-pointer rounded border border-[#bad7f2]/60 px-2 py-1 text-xs font-medium text-[#1f2f5f] hover:bg-[#bad7f2]/20">
                 사진 추가
                 <input type="file" accept="image/*" className="hidden" onChange={handleInsertImage} />
               </label>
@@ -374,7 +374,7 @@ function PostCompose({
 
             <div
               ref={editorRef}
-              className="min-h-[320px] rounded border border-[#89c6f5]/45 bg-white/95 px-3 py-2 text-sm focus-within:border-[#5b97bb] focus-within:ring-1 focus-within:ring-[#a6d4f8]/60 prose prose-slate"
+              className="min-h-[320px] rounded border border-[#bad7f2]/55 bg-white/95 px-3 py-2 text-sm focus-within:border-[#7ea6cb] focus-within:ring-1 focus-within:ring-[#bad7f2]/60 prose prose-slate"
               contentEditable
               suppressContentEditableWarning
               aria-label="여행을 꿈꾸게 된 이유, 예산/일정, 준비물, 다녀온 후기는 자유롭게 작성해 주세요."
@@ -383,16 +383,16 @@ function PostCompose({
         </div>
 
         {attachments.length > 0 ? (
-          <div className="rounded border border-[#89c6f5]/40 bg-white/90 px-4 py-3">
-            <h2 className="mb-2 text-sm font-semibold text-[#223142]">첨부된 이미지</h2>
-            <ul className="space-y-2 text-sm text-[#3c5166]">
+          <div className="rounded border border-[#bad7f2]/55 bg-white/90 px-4 py-3">
+            <h2 className="mb-2 text-sm font-semibold text-[#1f2f5f]">첨부된 이미지</h2>
+            <ul className="space-y-2 text-sm text-[#36577a]">
               {attachments.map((attachment) => (
                 <li key={attachment.id} className="flex items-center justify-between gap-3">
                   <span className="truncate">{attachment.name}</span>
                   <button
                     type="button"
                     onClick={() => handleRemoveAttachment(attachment.id)}
-                    className="rounded bg-[#d6ecff] px-2 py-1 text-xs font-medium text-[#223142] hover:bg-[#c6e2ff]"
+                    className="rounded bg-[#bad7f2] px-2 py-1 text-xs font-medium text-[#1f2f5f] hover:bg-[#a6cdef]"
                   >
                     삭제
                   </button>
@@ -403,7 +403,7 @@ function PostCompose({
         ) : null}
 
         <div>
-          <label className="mb-2 block text-sm font-medium text-[#2d5671]" htmlFor="tags">
+          <label className="mb-2 block text-sm font-medium text-[#36577a]" htmlFor="tags">
             태그
           </label>
           <input
@@ -411,7 +411,7 @@ function PostCompose({
             type="text"
             value={tagsInput}
             onChange={(event) => setTagsInput(event.target.value)}
-            className="w-full rounded border border-[#89c6f5]/45 bg-white/90 px-3 py-2 text-sm focus:border-[#5b97bb] focus:outline-none focus:ring-1 focus:ring-[#a6d4f8]/60"
+            className="w-full rounded border border-[#bad7f2]/55 bg-white/90 px-3 py-2 text-sm focus:border-[#7ea6cb] focus:outline-none focus:ring-1 focus:ring-[#bad7f2]/60"
             placeholder="예: 일본, 온천, 겨울, 일주일 (쉼표로 구분)"
           />
         </div>
@@ -420,13 +420,13 @@ function PostCompose({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded border border-[#89c6f5]/45 px-4 py-2 text-sm font-medium text-[#3c5166] hover:bg-[#89c6f5]/10"
+            className="rounded border border-[#bad7f2]/55 px-4 py-2 text-sm font-medium text-[#36577a] hover:bg-[#bad7f2]/20"
           >
             취소
           </button>
           <button
             type="submit"
-            className="rounded bg-[#223142] px-4 py-2 text-sm font-medium text-white hover:bg-[#1a2838]"
+            className="rounded bg-[#1f2f5f] px-4 py-2 text-sm font-medium text-white hover:bg-[#1b284f]"
           >
             등록
           </button>

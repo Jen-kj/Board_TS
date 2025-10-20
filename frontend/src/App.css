@@ -3,8 +3,8 @@
     BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.6;
   font-weight: 400;
-  color: #223142;
-  background-color: #f5dce6;
+  color: #1f2f5f;
+  background-color: #ffdbE5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -15,8 +15,8 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(circle at 12% 18%, rgba(137, 198, 245, 0.28) 0%, transparent 52%),
-    radial-gradient(circle at 88% 84%, rgba(137, 198, 245, 0.18) 0%, transparent 48%), #f5dce6;
+  background: radial-gradient(circle at 18% 20%, rgba(186, 215, 242, 0.45), transparent 55%),
+    radial-gradient(circle at 82% 78%, rgba(255, 219, 229, 0.6), transparent 48%), #ffdbE5;
 }
 
 #root {
@@ -39,13 +39,13 @@ a {
 
 .prose img {
   border-radius: 1.5rem;
-  box-shadow: 0 28px 55px -30px rgba(34, 49, 66, 0.18);
+  box-shadow: 0 28px 55px -30px rgba(31, 47, 95, 0.22);
 }
 
 .prose blockquote {
   margin: 1.25rem 0;
   padding-left: 1.25rem;
-  border-left: 4px solid rgba(34, 49, 66, 0.22);
-  color: rgba(34, 49, 66, 0.68);
+  border-left: 4px solid rgba(31, 47, 95, 0.28);
+  color: rgba(31, 47, 95, 0.72);
   font-style: italic;
 }

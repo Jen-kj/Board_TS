@@ -74,10 +74,10 @@ function HomePage({
           type="button"
           disabled={!canWrite}
           onClick={handleClickWrite}
-          className={`rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] ${
+          className={`rounded-full border border-[#bad7f2] px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition ${
             canWrite
-              ? 'bg-[#223142] text-white shadow-[0_12px_32px_-18px_rgba(34,49,66,0.35)] transition hover:bg-[#1a2838]'
-              : 'cursor-not-allowed border border-[#89c6f5]/45 text-[#5b7791]/60'
+              ? 'bg-white text-[#bad7f2] shadow-[0_12px_32px_-18px_rgba(31,47,95,0.2)] hover:bg-[#bad7f2] hover:text-[#1f2f5f]'
+              : 'cursor-not-allowed bg-white/70 text-[#bad7f2]/60 border-[#bad7f2]/40'
           }`}
         >
           글 작성
@@ -85,7 +85,7 @@ function HomePage({
       }
     >
       {!canWrite ? (
-        <p className="mb-8 rounded-[24px] border border-[#89c6f5]/45 bg-white/85 px-6 py-4 text-sm text-[#2d5671] shadow-[0_24px_60px_-46px_rgba(34,49,66,0.2)]">
+        <p className="mb-8 rounded-[24px] border border-[#bad7f2]/60 bg-white/85 px-6 py-4 text-sm text-[#36577a] shadow-[0_24px_60px_-46px_rgba(31,47,95,0.15)]">
           공지 게시판은 운영자만 글을 작성할 수 있어요.
         </p>
       ) : null}
