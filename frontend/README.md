@@ -1,16 +1,26 @@
-# React + Vite
+# RoamLog Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite로 구현한 여행 게시판 프론트엔드입니다. 백엔드(NestJS)가 제공하는 REST API(`POST /api/posts` 등)를 호출해서 게시글을 불러오고 저장합니다.
 
-Currently, two official plugins are available:
+## 개발 환경 실행
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-## React Compiler
+프로젝트 루트(`frontend/`)에 `.env` 파일을 만들어 API 엔드포인트를 지정할 수 있습니다.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```
+VITE_API_BASE_URL=http://localhost:3000/api
+```
 
-## Expanding the ESLint configuration
+값을 지정하지 않으면 기본값으로 `http://localhost:3000/api`를 사용합니다.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 스크립트
+
+- `npm run dev` – Vite 개발 서버
+- `npm run build` – 정적 빌드
+- `npm run preview` – 빌드 결과 미리보기
+- `npm run lint` – ESLint 검사

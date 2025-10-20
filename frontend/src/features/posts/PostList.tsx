@@ -10,9 +10,18 @@ type PostListItem = {
 
 interface PostListProps {
   posts: PostListItem[]
+  loading?: boolean
 }
 
-function PostList({ posts }: PostListProps): JSX.Element {
+function PostList({ posts, loading = false }: PostListProps): JSX.Element {
+  if (loading) {
+    return (
+      <div className="rounded-[32px] border border-[#bad7f2]/55 bg-white/85 px-6 py-10 text-center text-sm font-medium tracking-[0.35em] text-[#36577a] shadow-[0_26px_60px_-38px_rgba(31,47,95,0.18)]">
+        데이터를 불러오는 중이에요...
+      </div>
+    )
+  }
+
   if (posts.length === 0) {
     return (
       <div className="rounded-[32px] border border-dashed border-[#bad7f2]/55 bg-white/85 p-12 text-center text-[#36577a] shadow-[0_26px_60px_-38px_rgba(31,47,95,0.18)]">

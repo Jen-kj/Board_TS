@@ -2,15 +2,12 @@
 
 지금은 구조만 만들어 둔 상태입니다. NestJS 기반 API 서버를 추가할 계획이라면 아래 순서로 진행하세요.
 
-1. Nest CLI 설치
-   ```bash
-   npm install -g @nestjs/cli
-   ```
-2. `backend` 디렉터리에서 Nest 프로젝트 초기화
-   ```bash
-   cd backend
-   nest new api
-   ```
-3. 초기화 후에는 인증, 게시글 CRUD, 댓글 등 필요한 도메인 모듈을 구현하고, `frontend`와 REST API 또는 GraphQL로 통신하도록 구성합니다.
+이미 `backend/api` 에 기본 NestJS 프로젝트 뼈대가 추가돼 있습니다. 아래 명령으로 의존성을 설치하고 개발 서버를 실행하세요.
 
-지금 상태에서는 아직 코드가 없으므로, 초기화를 마친 뒤에 커밋해 주세요.
+```bash
+cd backend/api
+npm install
+npm run start:dev
+```
+
+기본적으로 `http://localhost:3000/api/posts` REST 엔드포인트를 제공합니다. 현재는 인메모리 방식이라 서버를 재시작하면 데이터가 초기화됩니다. DB를 붙이고 싶다면 `PostsService`를 repository/ORM 구현으로 교체하면 됩니다.

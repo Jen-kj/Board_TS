@@ -18,7 +18,7 @@ interface PostComposeProps {
   categories: BoardCategory[]
   defaultCategoryId?: string
   onCancel: () => void
-  onSubmit: (payload: PostDraftPayload) => void
+  onSubmit: (payload: PostDraftPayload) => Promise<void> | void
 }
 
 const INITIAL_EDITOR_HTML = '<p><br /></p>'
@@ -220,7 +220,7 @@ function PostCompose({
     }
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
 
     if (!title.trim()) {
@@ -249,46 +249,51 @@ function PostCompose({
     const excerpt =
       plainText.length > 140 ? `${plainText.slice(0, 140)}…` : plainText
 
-    onSubmit({
-      categoryId,
-      title: title.trim(),
-      contentHtml,
-      plainText: plainText.trim(),
-      excerpt,
-      tags,
-      attachments: attachments.map(({ id, name, url }) => ({
-        id,
-        name,
-        url,
-      })),
-    })
+    try {
+      await onSubmit({
+        categoryId,
+        title: title.trim(),
+        contentHtml,
+        plainText: plainText.trim(),
+        excerpt,
+        tags,
+        attachments: attachments.map(({ id, name, url }) => ({
+          id,
+          name,
+          url,
+        })),
+      })
 
-    setTitle('')
-    if (editorRef.current) {
-      editorRef.current.innerHTML = INITIAL_EDITOR_HTML
-      const selection = window.getSelection()
-      if (selection) {
-        const range = document.createRange()
-        range.selectNodeContents(editorRef.current)
-        range.collapse(false)
-        selection.removeAllRanges()
-        selection.addRange(range)
-        savedSelectionRef.current = range
-      } else {
-        savedSelectionRef.current = null
+      setTitle('')
+      if (editorRef.current) {
+        editorRef.current.innerHTML = INITIAL_EDITOR_HTML
+        const selection = window.getSelection()
+        if (selection) {
+          const range = document.createRange()
+          range.selectNodeContents(editorRef.current)
+          range.collapse(false)
+          selection.removeAllRanges()
+          selection.addRange(range)
+          savedSelectionRef.current = range
+        } else {
+          savedSelectionRef.current = null
+        }
       }
+      setTagsInput('')
+      attachments.forEach((attachment) => {
+        URL.revokeObjectURL(attachment.url)
+      })
+      setAttachments([])
+    } catch (err) {
+      console.error(err)
+      alert('글 작성 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
     }
-    setTagsInput('')
-    attachments.forEach((attachment) => {
-      URL.revokeObjectURL(attachment.url)
-    })
-    setAttachments([])
   }
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8 text-[#1f2f5f]">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-[#1f2f5f]">새 여행 기록 작성</h1>
+        <h1 className="text-3xl font-bold text-[#1f2f5f]">여행 및 버킷리스트 기록 작성</h1>
         <p className="mt-2 text-sm text-[#36577a]">
           떠나고 싶은 여행 버킷리스트나 다녀온 후기, 추천 코스를 자유롭게 공유해 주세요.
         </p>
@@ -305,7 +310,7 @@ function PostCompose({
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             className="w-full rounded border border-[#bad7f2]/55 bg-white/90 px-3 py-2 text-sm focus:border-[#7ea6cb] focus:outline-none focus:ring-1 focus:ring-[#bad7f2]/60"
-            placeholder="예: 올 여름에 떠나는 홋카이도 로드트립"
+            placeholder="예: 올 여름에 떠나는 삿포로 로드트립"
           />
         </div>
 

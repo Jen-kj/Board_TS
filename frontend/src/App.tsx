@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import PostCompose, { PostDraftPayload } from './features/board/PostCompose'
 import HomePage, { BoardCategory, PostSummary } from './pages/HomePage'
+import { createPost, fetchPosts } from './lib/api'
 
 type Page = 'home' | 'compose'
 
@@ -11,70 +12,47 @@ function App(): JSX.Element {
     { id: 'bucket', name: '버킷리스트', type: 'general' },
     { id: 'review', name: '후기·추천', type: 'general' },
   ])
-  const STORAGE_KEY = 'roamlog:posts'
 
-  const [posts, setPosts] = useState<PostSummary[]>(() => {
-    if (typeof window === 'undefined') {
-      return []
-    }
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY)
-      if (!stored) {
-        return []
-      }
-      const parsed = JSON.parse(stored) as PostSummary[]
-      return Array.isArray(parsed) ? parsed : []
-    } catch (error) {
-      console.warn('Failed to parse stored posts', error)
-      return []
-    }
-  })
+  const [posts, setPosts] = useState<PostSummary[]>([])
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState<Page>('home')
   const [composeTargetCategoryId, setComposeTargetCategoryId] = useState<string>('')
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-    try {
-      const serialisable = posts.map((post) => ({
-        ...post,
-        thumbnailUrl:
-          post.thumbnailUrl && post.thumbnailUrl.startsWith('blob:')
-            ? undefined
-            : post.thumbnailUrl,
-      }))
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(serialisable))
-    } catch (error) {
-      console.warn('Failed to persist posts', error)
-    }
-  }, [posts])
+    setIsLoading(true)
+    void fetchPosts()
+      .then((data) => {
+        setPosts(data)
+        setError(null)
+      })
+      .catch((err: unknown) => {
+        console.error(err)
+        setError('게시글을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
+  }, [])
 
   const handleRequestCompose = (categoryId: string): void => {
     setComposeTargetCategoryId(categoryId)
     setCurrentPage('compose')
   }
 
-  const handleSubmitPost = (draft: PostDraftPayload): void => {
-    const now = new Date()
-
-    const newPost: PostSummary = {
-      id:
-        typeof crypto !== 'undefined' && 'randomUUID' in crypto
-          ? crypto.randomUUID()
-          : `post-${Date.now()}`,
-      categoryId: draft.categoryId,
-      title: draft.title,
-      content: draft.contentHtml,
-      excerpt: draft.excerpt,
-      author: '익명 여행자',
-      createdAt: now.toISOString().slice(0, 10),
-      tags: draft.tags,
-      thumbnailUrl: draft.attachments[0]?.url,
+  const handleSubmitPost = async (draft: PostDraftPayload): Promise<void> => {
+    try {
+      setIsLoading(true)
+      const created = await createPost(draft)
+      setPosts((prev) => [created, ...prev])
+      setError(null)
+      setCurrentPage('home')
+    } catch (err) {
+      console.error(err)
+      setError('게시글 저장 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.')
+    } finally {
+      setIsLoading(false)
     }
-
-    setPosts((prev) => [newPost, ...prev])
-    setCurrentPage('home')
   }
 
   const handleCancelCompose = (): void => {
@@ -100,6 +78,8 @@ function App(): JSX.Element {
       categories={categories}
       posts={posts}
       onRequestCompose={handleRequestCompose}
+      loading={isLoading}
+      error={error}
     />
   )
 }

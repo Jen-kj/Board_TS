@@ -4,18 +4,25 @@
 
 ## 디렉터리 구조
 
-- `frontend/` – 기존에 작업하던 Vite + React 애플리케이션  
+- `frontend/` – Vite + React 애플리케이션  
   - `npm install`, `npm run dev` 등은 이 디렉터리에서 실행합니다.  
-  - `App.tsx`에 로컬스토리지 기반 게시글 저장 로직이 추가돼 있어서 새로고침해도 글이 유지됩니다.
-- `backend/` – NestJS 서버를 추가할 예정인 공간 (초기 README만 존재)
+  - `src/lib/api.ts`가 `VITE_API_BASE_URL`(기본값 `http://localhost:3000/api`)로 지정된 백엔드 REST API와 통신합니다.
+- `backend/api` – NestJS 기반 API 서버 템플릿  
+  - In-memory 게시글 CRUD를 제공하는 `posts` 모듈이 포함돼 있습니다.
 - `dist/` – 프론트엔드 빌드 결과
 
 ## 개발 방법
 
 ```bash
+cd backend/api
+npm install
+npm run start:dev # http://localhost:3000
+
+# 새 터미널
 cd frontend
 npm install
-npm run dev
+npm run dev # http://localhost:5173
 ```
 
-백엔드 작업을 시작할 때는 `backend` 폴더에서 Nest CLI를 사용해 초기화하거나, 준비된 템플릿을 가져와서 배치하면 됩니다. README에 간단한 가이드를 넣어두었습니다.
+`.env` 파일로 프론트엔드의 API 엔드포인트(`VITE_API_BASE_URL`)를 조정할 수 있습니다.  
+현재 백엔드는 메모리에 데이터를 보관하므로 서버를 재실행하면 게시글이 초기화됩니다. 추후 DB 연결 시 `PostsService`를 교체하면 됩니다.

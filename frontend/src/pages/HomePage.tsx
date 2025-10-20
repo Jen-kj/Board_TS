@@ -25,6 +25,8 @@ interface HomePageProps {
   categories: BoardCategory[]
   posts: PostSummary[]
   onRequestCompose: (categoryId: string) => void
+  loading?: boolean
+  error?: string | null
 }
 
 function HomePage({
@@ -32,6 +34,8 @@ function HomePage({
   categories,
   posts,
   onRequestCompose,
+  loading = false,
+  error = null,
 }: HomePageProps): JSX.Element {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
     categories[0]?.id ?? ''
@@ -90,17 +94,24 @@ function HomePage({
         </p>
       ) : null}
 
-      <PostList
-        posts={filteredPosts.map((post) => ({
-          id: post.id,
-          title: post.title,
-          excerpt: post.excerpt,
-          author: post.author,
-          createdAt: post.createdAt,
-          tags: post.tags,
-          thumbnailUrl: post.thumbnailUrl,
-        }))}
-      />
+      {error ? (
+        <p className="rounded-[24px] border border-red-200 bg-red-100/60 px-6 py-4 text-sm text-red-700 shadow-[0_24px_60px_-46px_rgba(239,68,68,0.25)]">
+          {error}
+        </p>
+      ) : (
+        <PostList
+          loading={loading}
+          posts={filteredPosts.map((post) => ({
+            id: post.id,
+            title: post.title,
+            excerpt: post.excerpt,
+            author: post.author,
+            createdAt: post.createdAt,
+            tags: post.tags,
+            thumbnailUrl: post.thumbnailUrl,
+          }))}
+        />
+      )}
     </BoardLayout>
   )
 }
