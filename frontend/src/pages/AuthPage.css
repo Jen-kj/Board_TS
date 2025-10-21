@@ -1,0 +1,217 @@
+.auth-page-root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  background: linear-gradient(135deg, #f6f0ff 0%, #fde6ef 45%, #f9f9ff 100%);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 920px;
+  min-height: 560px;
+  border-radius: 36px;
+  background: #ffffff;
+  box-shadow: 0 44px 90px -48px rgba(31, 47, 95, 0.42);
+  overflow: hidden;
+  display: flex;
+}
+
+.auth-pane {
+  flex: 1;
+  padding: 68px 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.5s ease, color 0.5s ease;
+}
+
+.form-pane {
+  background: #ffffff;
+  color: #1f2f5f;
+}
+
+.overlay-pane {
+  background: linear-gradient(135deg, #1f2f5f 0%, #238fad 45%, #59c3c3 100%);
+  color: #ffffff;
+  text-align: center;
+}
+
+.form-stack {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-stack h2 {
+  font-size: 2.45rem;
+  font-weight: 800;
+  color: #173f7c;
+  letter-spacing: -0.02em;
+}
+
+.form-stack p {
+  font-size: 0.95rem;
+  color: #4e6e8e;
+  line-height: 1.7;
+}
+
+.form-stack form {
+  display: grid;
+  gap: 1rem;
+}
+
+.form-stack label {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: #59a1c3;
+  font-weight: 600;
+}
+
+.form-stack input {
+  margin-top: 0.65rem;
+  width: 100%;
+  border-radius: 9999px;
+  border: 1px solid rgba(186, 215, 242, 0.92);
+  padding: 0.95rem 1.25rem;
+  font-size: 0.96rem;
+  color: #1f2f5f;
+  background: rgba(255, 255, 255, 0.98);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-stack input:focus {
+  border-color: #59c3c3;
+  box-shadow: 0 0 0 4px rgba(89, 195, 195, 0.18);
+}
+
+.form-stack .error {
+  font-size: 0.78rem;
+  color: #ef4444;
+}
+
+.primary-button {
+  width: 100%;
+  border-radius: 9999px;
+  padding: 0.95rem 1.5rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  font-weight: 700;
+  border: none;
+  background: #59c3c3;
+  color: #ffffff;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.primary-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #46b1b1;
+  box-shadow: 0 12px 24px -14px rgba(70, 177, 177, 0.52);
+}
+
+.primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.google-button {
+  width: 100%;
+  border-radius: 9999px;
+  padding: 0.9rem 1.5rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border: 1px solid rgba(89, 195, 195, 0.35);
+  background: linear-gradient(135deg, rgba(89, 195, 195, 0.18), rgba(89, 195, 195, 0.1));
+  color: #134f67;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border 0.2s ease;
+}
+
+.google-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(89, 195, 195, 0.24);
+  border-color: rgba(89, 195, 195, 0.42);
+  color: #0f455a;
+}
+
+.google-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.helper-text {
+  font-size: 0.73rem;
+  color: #7ea6cb;
+  line-height: 1.6;
+}
+
+.overlay-content {
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+  align-items: center;
+  text-align: center;
+}
+
+.overlay-content h2 {
+  font-size: 2.45rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.overlay-content p {
+  font-size: 0.96rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.overlay-content button {
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: transparent;
+  color: #ffffff;
+  padding: 0.9rem 1.9rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  font-weight: 600;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.overlay-content button:hover {
+  background: #ffffff;
+  color: #1f2f5f;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 960px) {
+  .auth-card {
+    max-width: 100%;
+    border-radius: 32px;
+  }
+}
+
+@media (max-width: 720px) {
+  .auth-card {
+    flex-direction: column;
+    border-radius: 28px;
+  }
+
+  .auth-pane {
+    width: 100%;
+    padding: 48px 32px;
+  }
+}
