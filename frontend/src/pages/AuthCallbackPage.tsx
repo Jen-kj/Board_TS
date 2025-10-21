@@ -5,7 +5,7 @@ import { useAuth } from '../features/auth/useAuth'
 function AuthCallbackPage(): JSX.Element {
   const location = useLocation()
   const navigate = useNavigate()
-  const { loginWithToken, setPendingRedirect, pendingRedirect } = useAuth()
+  const { loginWithToken, pendingRedirect } = useAuth()
   const [error, setError] = useState<string | null>(null)
 
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search])
@@ -30,7 +30,7 @@ function AuthCallbackPage(): JSX.Element {
       .catch(() => {
         setError('로그인 과정에서 오류가 발생했어요. 다시 시도해 주세요.')
       })
-  }, [searchParams, loginWithToken, navigate, setPendingRedirect, pendingRedirect])
+  }, [searchParams, loginWithToken, navigate, pendingRedirect])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f3f6ff] text-[#1f2f5f]">

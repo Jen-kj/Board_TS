@@ -1,3 +1,5 @@
+export type AuthProvider = 'google' | 'local'
+
 export interface AuthUser {
   id: string
   email: string
@@ -5,6 +7,8 @@ export interface AuthUser {
   avatarUrl?: string | null
   requiresProfileSetup: boolean
   googleDisplayName?: string | null
+  username?: string | null
+  provider: AuthProvider
 }
 
 export interface JwtPayload {
@@ -14,6 +18,8 @@ export interface JwtPayload {
   avatarUrl?: string | null
   requiresProfileSetup: boolean
   googleDisplayName?: string | null
+  username?: string | null
+  provider: AuthProvider
   iat?: number
   exp?: number
 }

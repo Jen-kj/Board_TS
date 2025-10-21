@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import BoardLayout from '../features/board/BoardLayout'
+import BoardHeaderActions from '../features/board/BoardHeaderActions'
 import PostList from '../features/posts/PostList'
 
 export type BoardCategory = {
@@ -95,18 +96,10 @@ function HomePage({
       searchPlaceholder="제목, 내용, 태그 검색"
       searchDisabled={loading}
       actionSlot={
-        <button
-          type="button"
-          disabled={!canWrite}
-          onClick={handleClickWrite}
-          className={`rounded-full border border-[#bad7f2] px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition ${
-            canWrite
-              ? 'bg-white text-[#bad7f2] shadow-[0_12px_32px_-18px_rgba(31,47,95,0.2)] hover:bg-[#bad7f2] hover:text-[#1f2f5f]'
-              : 'cursor-not-allowed bg-white/70 text-[#bad7f2]/60 border-[#bad7f2]/40'
-          }`}
-        >
-          글 작성
-        </button>
+        <BoardHeaderActions
+          onCompose={handleClickWrite}
+          canCompose={canWrite}
+        />
       }
     >
       {!canWrite ? (

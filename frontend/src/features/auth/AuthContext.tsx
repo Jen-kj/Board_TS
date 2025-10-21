@@ -8,7 +8,12 @@ import {
   useState,
 } from 'react'
 import type { AuthenticatedUser } from '../../lib/api'
-import { fetchCurrentUser, updateProfile } from '../../lib/api'
+import {
+  fetchCurrentUser,
+  updateProfile,
+  registerLocalAccount,
+  loginLocalAccount,
+} from '../../lib/api'
 
 const STORAGE_KEY = 'board.auth.token'
 const REDIRECT_STORAGE_KEY = 'board.auth.redirect'
@@ -19,6 +24,13 @@ type AuthContextValue = {
   loading: boolean
   loginWithToken: (token: string) => Promise<void>
   completeProfile: (displayName: string) => Promise<void>
+  registerLocal: (payload: {
+    username: string
+    password: string
+    displayName: string
+    email: string
+  }) => Promise<void>
+  loginLocal: (payload: { identifier: string; password: string }) => Promise<void>
   logout: () => void
   setPendingRedirect: (path: string | null) => void
   pendingRedirect: string | null
@@ -112,11 +124,49 @@ export function AuthProvider({ children }: PropsWithChildren): JSX.Element {
         localStorage.setItem(STORAGE_KEY, result.token)
         setToken(result.token)
         setUser(result.user)
+      } catch (error) {
+        throw error
       } finally {
         setLoading(false)
       }
     },
     [token]
+  )
+
+  const applyAuthResponse = useCallback((tokenValue: string, userValue: AuthenticatedUser) => {
+    localStorage.setItem(STORAGE_KEY, tokenValue)
+    setToken(tokenValue)
+    setUser(userValue)
+  }, [])
+
+  const registerLocal = useCallback(
+    async (payload: { username: string; password: string; displayName: string; email: string }) => {
+      setLoading(true)
+      try {
+        const result = await registerLocalAccount(payload)
+        applyAuthResponse(result.token, result.user)
+      } catch (error) {
+        throw error
+      } finally {
+        setLoading(false)
+      }
+    },
+    [applyAuthResponse]
+  )
+
+  const loginLocal = useCallback(
+    async (payload: { identifier: string; password: string }) => {
+      setLoading(true)
+      try {
+        const result = await loginLocalAccount(payload)
+        applyAuthResponse(result.token, result.user)
+      } catch (error) {
+        throw error
+      } finally {
+        setLoading(false)
+      }
+    },
+    [applyAuthResponse]
   )
 
   const logout = useCallback(() => {
@@ -130,11 +180,24 @@ export function AuthProvider({ children }: PropsWithChildren): JSX.Element {
       loading,
       loginWithToken,
       completeProfile,
+      registerLocal,
+      loginLocal,
       logout,
       pendingRedirect,
       setPendingRedirect,
     }),
-    [user, token, loading, loginWithToken, completeProfile, logout, pendingRedirect, setPendingRedirect]
+    [
+      user,
+      token,
+      loading,
+      loginWithToken,
+      completeProfile,
+      registerLocal,
+      loginLocal,
+      logout,
+      pendingRedirect,
+      setPendingRedirect,
+    ]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

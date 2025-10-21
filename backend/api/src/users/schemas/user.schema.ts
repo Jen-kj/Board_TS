@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { HydratedDocument } from 'mongoose'
 
-export type AuthProvider = 'google'
+export type AuthProvider = 'google' | 'local'
 
 @Schema({
   timestamps: true,
@@ -10,6 +10,7 @@ export type AuthProvider = 'google'
       ret.id = ret._id.toString()
       delete ret._id
       delete ret.__v
+      delete ret.passwordHash
       return ret
     },
   },
@@ -21,7 +22,13 @@ export class User {
   @Prop({ trim: true })
   displayName?: string
 
-  @Prop({ required: true, enum: ['google'] })
+  @Prop({ trim: true, lowercase: true, unique: true, sparse: true })
+  username?: string
+
+  @Prop()
+  passwordHash?: string
+
+  @Prop({ required: true, enum: ['google', 'local'] })
   provider!: AuthProvider
 
   @Prop({ required: true })

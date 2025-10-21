@@ -1,6 +1,8 @@
 import type { PostDraftPayload } from '../features/board/PostCompose'
 import type { PostSummary } from '../pages/HomePage'
 
+export type AuthProvider = 'google' | 'local'
+
 export type AuthenticatedUser = {
   id: string
   email: string
@@ -8,6 +10,8 @@ export type AuthenticatedUser = {
   avatarUrl?: string | null
   requiresProfileSetup: boolean
   googleDisplayName?: string | null
+  username?: string | null
+  provider: AuthProvider
 }
 
 export const API_BASE_URL =
@@ -161,6 +165,48 @@ export async function updateProfile(token: string, payload: { displayName: strin
       ? data.message[0]
       : data?.message ?? data?.error
     throw new Error(message ?? `Failed to update profile: ${response.status}`)
+  }
+
+  return (await response.json()) as AuthResponse
+}
+
+const extractErrorMessage = async (response: Response): Promise<string> => {
+  const data = await response.json().catch(() => null)
+  const message = Array.isArray(data?.message) ? data?.message[0] : data?.message ?? data?.error
+  return message ?? `Request failed: ${response.status}`
+}
+
+export async function registerLocalAccount(payload: {
+  username: string
+  password: string
+  displayName: string
+  email: string
+}): Promise<AuthResponse> {
+  const response = await fetch(`${API_BASE_URL}/auth/local/register`, {
+    method: 'POST',
+    headers: jsonHeaders,
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    throw new Error(await extractErrorMessage(response))
+  }
+
+  return (await response.json()) as AuthResponse
+}
+
+export async function loginLocalAccount(payload: {
+  identifier: string
+  password: string
+}): Promise<AuthResponse> {
+  const response = await fetch(`${API_BASE_URL}/auth/local/login`, {
+    method: 'POST',
+    headers: jsonHeaders,
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    throw new Error(await extractErrorMessage(response))
   }
 
   return (await response.json()) as AuthResponse

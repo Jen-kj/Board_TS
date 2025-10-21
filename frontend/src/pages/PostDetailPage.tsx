@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import BoardLayout from '../features/board/BoardLayout'
+import BoardHeaderActions from '../features/board/BoardHeaderActions'
 import type { BoardCategory, PostSummary } from './HomePage'
 import type { AuthenticatedUser } from '../lib/api'
 import { fetchPost } from '../lib/api'
@@ -170,6 +171,10 @@ function PostDetailPage({
     }
   }
 
+  const headerActions = (
+    <BoardHeaderActions onCompose={handleClickWrite} canCompose={canWrite} />
+  )
+
   const renderBody = (): JSX.Element => {
     if (loading) {
       return (
@@ -285,20 +290,7 @@ function PostDetailPage({
         isSearching={isSearching}
         searchPlaceholder="제목, 내용, 태그 검색"
         searchDisabled={searchDisabled}
-        actionSlot={
-          <button
-            type="button"
-            disabled={!canWrite}
-            onClick={handleClickWrite}
-            className={`rounded-full border border-[#bad7f2] px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition ${
-              canWrite
-                ? 'bg-white text-[#bad7f2] shadow-[0_12px_32px_-18px_rgba(31,47,95,0.2)] hover:bg-[#bad7f2] hover:text-[#1f2f5f]'
-                : 'cursor-not-allowed bg-white/70 text-[#bad7f2]/60 border-[#bad7f2]/40'
-            }`}
-          >
-            글 작성
-          </button>
-        }
+        actionSlot={headerActions}
       >
         <div className="flex min-h-[320px] items-center justify-center">
           <div className="rounded-[32px] border border-[#bad7f2]/55 bg-white/85 px-8 py-6 text-center text-sm font-medium tracking-[0.35em] text-[#36577a] shadow-[0_26px_60px_-38px_rgba(31,47,95,0.18)]">
@@ -323,20 +315,7 @@ function PostDetailPage({
         isSearching={isSearching}
         searchPlaceholder="제목, 내용, 태그 검색"
         searchDisabled={searchDisabled}
-        actionSlot={
-          <button
-            type="button"
-            disabled={!canWrite}
-            onClick={handleClickWrite}
-            className={`rounded-full border border-[#bad7f2] px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition ${
-              canWrite
-                ? 'bg-white text-[#bad7f2] shadow-[0_12px_32px_-18px_rgba(31,47,95,0.2)] hover:bg-[#bad7f2] hover:text-[#1f2f5f]'
-                : 'cursor-not-allowed bg-white/70 text-[#bad7f2]/60 border-[#bad7f2]/40'
-            }`}
-          >
-            글 작성
-          </button>
-        }
+        actionSlot={headerActions}
       >
         <div className="flex min-h-[320px] items-center justify-center">
           <div className="space-y-4 rounded-[32px] border border-[#bad7f2]/55 bg-white/85 px-10 py-8 text-center text-[#36577a] shadow-[0_26px_60px_-38px_rgba(31,47,95,0.18)]">
@@ -366,20 +345,7 @@ function PostDetailPage({
       isSearching={isSearching}
       searchPlaceholder="제목, 내용, 태그 검색"
       searchDisabled={searchDisabled}
-      actionSlot={
-        <button
-          type="button"
-          disabled={!canWrite}
-          onClick={handleClickWrite}
-          className={`rounded-full border border-[#bad7f2] px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition ${
-            canWrite
-              ? 'bg-white text-[#bad7f2] shadow-[0_12px_32px_-18px_rgba(31,47,95,0.2)] hover:bg-[#bad7f2] hover:text-[#1f2f5f]'
-              : 'cursor-not-allowed bg-white/70 text-[#bad7f2]/60 border-[#bad7f2]/40'
-          }`}
-        >
-          글 작성
-        </button>
-      }
+      actionSlot={headerActions}
     >
       <div className="mx-auto max-w-4xl space-y-8">
         {renderBody()}

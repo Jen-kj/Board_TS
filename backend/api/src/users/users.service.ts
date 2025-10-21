@@ -10,6 +10,13 @@ interface UpsertGoogleUserInput {
   avatarUrl?: string
 }
 
+interface CreateLocalUserInput {
+  email: string
+  username: string
+  displayName: string
+  passwordHash: string
+}
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -23,6 +30,24 @@ export class UsersService {
 
   findByProvider(provider: AuthProvider, providerId: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ provider, providerId }).exec()
+  }
+
+  findByEmail(email: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ email: email.toLowerCase() }).exec()
+  }
+
+  findByUsername(username: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ username: username.toLowerCase() }).exec()
+  }
+
+  findLocalByIdentifier(identifier: string): Promise<UserDocument | null> {
+    const normalized = identifier.toLowerCase()
+    return this.userModel
+      .findOne({
+        provider: 'local',
+        $or: [{ username: normalized }, { email: normalized }],
+      })
+      .exec()
   }
 
   async upsertGoogleUser(input: UpsertGoogleUserInput): Promise<UserDocument> {
@@ -45,6 +70,25 @@ export class UsersService {
       googleDisplayName: input.displayName,
       displayName: '',
       requiresProfileSetup: true,
+    })
+
+    return created.save()
+  }
+
+  async createLocalUser(input: CreateLocalUserInput): Promise<UserDocument> {
+    const trimmedDisplayName = input.displayName.trim()
+    if (trimmedDisplayName.length === 0) {
+      throw new BadRequestException('닉네임을 입력해 주세요.')
+    }
+
+    const created = new this.userModel({
+      email: input.email.toLowerCase(),
+      username: input.username.toLowerCase(),
+      displayName: trimmedDisplayName,
+      provider: 'local',
+      providerId: input.username.toLowerCase(),
+      passwordHash: input.passwordHash,
+      requiresProfileSetup: false,
     })
 
     return created.save()

@@ -22,6 +22,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       avatarUrl: payload.avatarUrl ?? null,
       requiresProfileSetup: payload.requiresProfileSetup,
       googleDisplayName: payload.googleDisplayName ?? null,
+      username: payload.username ?? null,
+      provider: payload.provider,
     }
   }
 }

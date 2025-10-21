@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Req, Res, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Patch, Post, Req, Res, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import type { Request, Response } from 'express'
 import { AuthService } from './auth.service'
@@ -6,6 +6,8 @@ import { CurrentUser } from './decorators/current-user.decorator'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
 import type { AuthUser } from './interfaces/auth-user.interface'
 import { UpdateProfileDto } from './dto/update-profile.dto'
+import { RegisterLocalDto } from './dto/register-local.dto'
+import { LoginLocalDto } from './dto/login-local.dto'
 
 @Controller('auth')
 export class AuthController {
@@ -42,5 +44,15 @@ export class AuthController {
     @Body() payload: UpdateProfileDto
   ): Promise<{ token: string; user: AuthUser }> {
     return this.authService.updateProfile(user.id, payload)
+  }
+
+  @Post('local/register')
+  async registerLocal(@Body() payload: RegisterLocalDto): Promise<{ token: string; user: AuthUser }> {
+    return this.authService.registerLocalUser(payload)
+  }
+
+  @Post('local/login')
+  async loginLocal(@Body() payload: LoginLocalDto): Promise<{ token: string; user: AuthUser }> {
+    return this.authService.loginLocalUser(payload)
   }
 }
