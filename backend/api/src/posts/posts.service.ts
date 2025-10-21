@@ -1,56 +1,50 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { randomUUID } from 'node:crypto'
-import { PostEntity } from './entities/post.entity'
+import { InjectModel } from '@nestjs/mongoose'
+import { Model } from 'mongoose'
 import { CreatePostDto } from './dto/create-post.dto'
 import { UpdatePostDto } from './dto/update-post.dto'
+import { Post, PostDocument } from './schemas/post.schema'
 
 @Injectable()
 export class PostsService {
-  private posts: PostEntity[] = []
+  constructor(
+    @InjectModel(Post.name)
+    private readonly postModel: Model<PostDocument>
+  ) {}
 
-  findAll(): PostEntity[] {
-    return this.posts
+  async findAll(): Promise<PostDocument[]> {
+    return this.postModel.find().sort({ createdAt: -1 }).exec()
   }
 
-  findOne(id: string): PostEntity {
-    const post = this.posts.find((item) => item.id === id)
-    if (!post) {
+  async findOne(id: string): Promise<PostDocument> {
+    const doc = await this.postModel.findById(id).exec()
+    if (!doc) {
       throw new NotFoundException('Post not found')
     }
-
-    return post
+    return doc
   }
 
-  create(payload: CreatePostDto): PostEntity {
-    const now = new Date().toISOString()
-    const post: PostEntity = {
-      id: randomUUID(),
-      createdAt: now,
+  async create(payload: CreatePostDto): Promise<PostDocument> {
+    const created = new this.postModel({
       ...payload,
-    }
-    this.posts = [post, ...this.posts]
-    return post
+      tags: payload.tags ?? [],
+    })
+    return created.save()
   }
 
-  update(id: string, payload: UpdatePostDto): PostEntity {
-    const index = this.posts.findIndex((item) => item.id === id)
-    if (index === -1) {
+  async update(id: string, payload: UpdatePostDto): Promise<PostDocument> {
+    const doc = await this.postModel.findByIdAndUpdate(id, payload, { new: true }).exec()
+
+    if (!doc) {
       throw new NotFoundException('Post not found')
     }
-
-    const updated: PostEntity = {
-      ...this.posts[index],
-      ...payload,
-    }
-    this.posts[index] = updated
-    return updated
+    return doc
   }
 
-  remove(id: string): void {
-    const exists = this.posts.some((item) => item.id === id)
-    if (!exists) {
+  async remove(id: string): Promise<void> {
+    const result = await this.postModel.findByIdAndDelete(id).exec()
+    if (!result) {
       throw new NotFoundException('Post not found')
     }
-    this.posts = this.posts.filter((item) => item.id !== id)
   }
 }

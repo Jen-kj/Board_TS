@@ -18,6 +18,16 @@ export async function fetchPosts(): Promise<PostSummary[]> {
   return data
 }
 
+export async function fetchPost(id: string): Promise<PostSummary> {
+  const response = await fetch(`${API_BASE_URL}/posts/${id}`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch post: ${response.status}`)
+  }
+
+  const data = (await response.json()) as PostSummary
+  return data
+}
+
 export async function createPost(payload: PostDraftPayload): Promise<PostSummary> {
   const [firstAttachment] = payload.attachments ?? []
 
