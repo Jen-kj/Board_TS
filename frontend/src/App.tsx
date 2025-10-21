@@ -7,13 +7,14 @@ import PostDetailPage from './pages/PostDetailPage'
 import PostEditPage from './pages/PostEditPage'
 import AuthPage from './pages/AuthPage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
+import AuthProfileSetupPage from './pages/AuthProfileSetupPage'
 import { createPost, deletePost, fetchPosts, updatePost } from './lib/api'
 import { useAuth } from './features/auth/useAuth'
 
 function App(): JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, token, loading: authLoading, setPendingRedirect } = useAuth()
+  const { user, token, loading: authLoading, setPendingRedirect, pendingRedirect } = useAuth()
   const categories = useMemo<BoardCategory[]>(
     () => [
       { id: 'notice', name: '공지사항', type: 'notice' },
@@ -73,19 +74,44 @@ function App(): JSX.Element {
       return
     }
 
-    if (!token) {
-      const isAuthPath =
-        location.pathname === '/auth' || location.pathname.startsWith('/auth/callback')
+    const isAuthPath = location.pathname.startsWith('/auth')
 
+    if (!token) {
       if (isAuthPath) {
         return
       }
-
       const currentPath = `${location.pathname}${location.search}`
       setPendingRedirect(currentPath || '/')
       navigate(`/auth?next=${encodeURIComponent(currentPath || '/')}`, { replace: true })
+      return
     }
-  }, [authLoading, token, location, navigate, setPendingRedirect])
+
+    if (user?.requiresProfileSetup) {
+      if (location.pathname !== '/auth/setup') {
+        if (!pendingRedirect || pendingRedirect === '/auth/setup') {
+          const currentPath = `${location.pathname}${location.search}`
+          setPendingRedirect(currentPath || '/')
+        }
+        navigate('/auth/setup', { replace: true })
+      }
+      return
+    }
+
+    if (!user?.requiresProfileSetup && isAuthPath && location.pathname !== '/auth/callback') {
+      const target =
+        pendingRedirect && pendingRedirect !== '/auth/setup' ? pendingRedirect : '/'
+      setPendingRedirect(null)
+      navigate(target, { replace: true })
+    }
+  }, [
+    authLoading,
+    token,
+    user,
+    location,
+    navigate,
+    setPendingRedirect,
+    pendingRedirect,
+  ])
 
   const handleRequestCompose = (categoryId: string): void => {
     const nextPath = `/compose${categoryId ? `?category=${categoryId}` : ''}`
@@ -229,6 +255,7 @@ function App(): JSX.Element {
     <Routes>
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      <Route path="/auth/setup" element={<AuthProfileSetupPage />} />
       <Route
         path="/"
         element={

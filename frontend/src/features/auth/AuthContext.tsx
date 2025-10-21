@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react'
 import type { AuthenticatedUser } from '../../lib/api'
-import { fetchCurrentUser } from '../../lib/api'
+import { fetchCurrentUser, updateProfile } from '../../lib/api'
 
 const STORAGE_KEY = 'board.auth.token'
 const REDIRECT_STORAGE_KEY = 'board.auth.redirect'
@@ -18,6 +18,7 @@ type AuthContextValue = {
   token: string | null
   loading: boolean
   loginWithToken: (token: string) => Promise<void>
+  completeProfile: (displayName: string) => Promise<void>
   logout: () => void
   setPendingRedirect: (path: string | null) => void
   pendingRedirect: string | null
@@ -99,6 +100,25 @@ export function AuthProvider({ children }: PropsWithChildren): JSX.Element {
     }
   }, [clearSession])
 
+  const completeProfile = useCallback(
+    async (displayName: string) => {
+      if (!token) {
+        throw new Error('로그인이 필요해요.')
+      }
+
+      setLoading(true)
+      try {
+        const result = await updateProfile(token, { displayName })
+        localStorage.setItem(STORAGE_KEY, result.token)
+        setToken(result.token)
+        setUser(result.user)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [token]
+  )
+
   const logout = useCallback(() => {
     clearSession()
   }, [clearSession])
@@ -109,11 +129,12 @@ export function AuthProvider({ children }: PropsWithChildren): JSX.Element {
       token,
       loading,
       loginWithToken,
+      completeProfile,
       logout,
       pendingRedirect,
       setPendingRedirect,
     }),
-    [user, token, loading, loginWithToken, logout, pendingRedirect, setPendingRedirect]
+    [user, token, loading, loginWithToken, completeProfile, logout, pendingRedirect, setPendingRedirect]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

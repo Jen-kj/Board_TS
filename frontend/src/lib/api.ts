@@ -6,6 +6,8 @@ export type AuthenticatedUser = {
   email: string
   displayName: string
   avatarUrl?: string | null
+  requiresProfileSetup: boolean
+  googleDisplayName?: string | null
 }
 
 export const API_BASE_URL =
@@ -139,6 +141,29 @@ export async function fetchCurrentUser(token: string): Promise<AuthenticatedUser
 
   const data = (await response.json()) as AuthenticatedUser
   return data
+}
+
+type AuthResponse = {
+  token: string
+  user: AuthenticatedUser
+}
+
+export async function updateProfile(token: string, payload: { displayName: string }): Promise<AuthResponse> {
+  const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null)
+    const message = Array.isArray(data?.message)
+      ? data.message[0]
+      : data?.message ?? data?.error
+    throw new Error(message ?? `Failed to update profile: ${response.status}`)
+  }
+
+  return (await response.json()) as AuthResponse
 }
 
 export function buildGoogleAuthUrl(state?: string): string {

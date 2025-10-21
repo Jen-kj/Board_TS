@@ -18,8 +18,8 @@ export class User {
   @Prop({ required: true, unique: true, lowercase: true, trim: true })
   email!: string
 
-  @Prop({ required: true })
-  displayName!: string
+  @Prop({ trim: true })
+  displayName?: string
 
   @Prop({ required: true, enum: ['google'] })
   provider!: AuthProvider
@@ -29,6 +29,12 @@ export class User {
 
   @Prop()
   avatarUrl?: string
+
+  @Prop()
+  googleDisplayName?: string
+
+  @Prop({ required: true, default: true })
+  requiresProfileSetup!: boolean
 }
 
 export type UserDocument = HydratedDocument<User>

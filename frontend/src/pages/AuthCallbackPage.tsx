@@ -25,7 +25,6 @@ function AuthCallbackPage(): JSX.Element {
 
     loginWithToken(token)
       .then(() => {
-        setPendingRedirect(null)
         navigate(decodedNext || '/', { replace: true })
       })
       .catch(() => {

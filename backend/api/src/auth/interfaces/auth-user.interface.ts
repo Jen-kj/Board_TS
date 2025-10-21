@@ -3,6 +3,8 @@ export interface AuthUser {
   email: string
   displayName: string
   avatarUrl?: string | null
+  requiresProfileSetup: boolean
+  googleDisplayName?: string | null
 }
 
 export interface JwtPayload {
@@ -10,6 +12,8 @@ export interface JwtPayload {
   email: string
   displayName: string
   avatarUrl?: string | null
+  requiresProfileSetup: boolean
+  googleDisplayName?: string | null
   iat?: number
   exp?: number
 }

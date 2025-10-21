@@ -3,6 +3,8 @@ import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import { UsersService } from '../users/users.service'
 import type { AuthUser, JwtPayload } from './interfaces/auth-user.interface'
+import { UpdateProfileDto } from './dto/update-profile.dto'
+import type { UserDocument } from '../users/schemas/user.schema'
 
 interface GoogleUserInput {
   email: string
@@ -23,6 +25,17 @@ export class AuthService {
     this.frontendUrl = configService.get<string>('FRONTEND_URL') ?? 'http://localhost:5173'
   }
 
+  private toAuthUser(userDoc: UserDocument): AuthUser {
+    return {
+      id: userDoc.id,
+      email: userDoc.email,
+      displayName: userDoc.displayName ?? '',
+      avatarUrl: userDoc.avatarUrl ?? null,
+      requiresProfileSetup: userDoc.requiresProfileSetup ?? false,
+      googleDisplayName: userDoc.googleDisplayName ?? null,
+    }
+  }
+
   getFrontendCallbackUrl(token: string, state?: string | null): string {
     const url = new URL('/auth/callback', this.frontendUrl)
     url.searchParams.set('token', token)
@@ -40,12 +53,7 @@ export class AuthService {
       avatarUrl: input.avatarUrl,
     })
 
-    return {
-      id: userDoc.id,
-      email: userDoc.email,
-      displayName: userDoc.displayName,
-      avatarUrl: userDoc.avatarUrl ?? null,
-    }
+    return this.toAuthUser(userDoc)
   }
 
   signToken(user: AuthUser): string {
@@ -54,7 +62,17 @@ export class AuthService {
       email: user.email,
       displayName: user.displayName,
       avatarUrl: user.avatarUrl ?? null,
+      requiresProfileSetup: user.requiresProfileSetup,
+      googleDisplayName: user.googleDisplayName ?? null,
     }
     return this.jwtService.sign(payload)
   }
+
+  async updateProfile(userId: string, payload: UpdateProfileDto): Promise<{ token: string; user: AuthUser }> {
+    const updated = await this.usersService.updateProfile(userId, payload.displayName)
+    const authUser = this.toAuthUser(updated)
+    const token = this.signToken(authUser)
+    return { token, user: authUser }
+  }
 }
+

@@ -43,10 +43,14 @@ export class PostsService {
   }
 
   async create(user: AuthUser, payload: CreatePostDto): Promise<PostDocument> {
+    if (!user.displayName || user.displayName.trim().length === 0) {
+      throw new ForbiddenException('닉네임을 설정한 후 글을 작성할 수 있어요.')
+    }
+
     const created = new this.postModel({
       ...payload,
       authorId: user.id,
-      author: user.displayName,
+      author: user.displayName.trim(),
       authorAvatarUrl: user.avatarUrl,
       tags: payload.tags ?? [],
     })
@@ -54,6 +58,9 @@ export class PostsService {
   }
 
   async update(id: string, user: AuthUser, payload: UpdatePostDto): Promise<PostDocument> {
+    if (!user.displayName || user.displayName.trim().length === 0) {
+      throw new ForbiddenException('닉네임을 설정한 후 글을 수정할 수 있어요.')
+    }
     const target = await this.postModel.findById(id).exec()
 
     if (!target) {

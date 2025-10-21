@@ -20,6 +20,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       email: payload.email,
       displayName: payload.displayName,
       avatarUrl: payload.avatarUrl ?? null,
+      requiresProfileSetup: payload.requiresProfileSetup,
+      googleDisplayName: payload.googleDisplayName ?? null,
     }
   }
 }
