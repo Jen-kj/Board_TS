@@ -9,6 +9,12 @@ interface PostDetailPageProps {
   onRequestCompose: (categoryId: string) => void
   postCache: PostSummary[]
   onRefresh?: () => Promise<void> | void
+  searchValue: string
+  onChangeSearch: (value: string) => void
+  onSubmitSearch: () => void
+  onResetSearch: () => void
+  isSearching: boolean
+  searchDisabled?: boolean
 }
 
 function PostDetailPage({
@@ -16,6 +22,12 @@ function PostDetailPage({
   onRequestCompose,
   postCache,
   onRefresh,
+  searchValue,
+  onChangeSearch,
+  onSubmitSearch,
+  onResetSearch,
+  isSearching,
+  searchDisabled = false,
 }: PostDetailPageProps): JSX.Element {
   const { postId } = useParams<{ postId: string }>()
   const [post, setPost] = useState<PostSummary | null>(null)
@@ -190,6 +202,13 @@ function PostDetailPage({
         categories={categories.map(({ id, name }) => ({ id, name }))}
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={handleSelectCategory}
+        searchValue={searchValue}
+        onSearchChange={onChangeSearch}
+        onSearchSubmit={onSubmitSearch}
+        onResetSearch={onResetSearch}
+        isSearching={isSearching}
+        searchPlaceholder="제목, 내용, 태그 검색"
+        searchDisabled={searchDisabled}
         actionSlot={
           <button
             type="button"
@@ -221,6 +240,13 @@ function PostDetailPage({
         categories={categories.map(({ id, name }) => ({ id, name }))}
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={handleSelectCategory}
+        searchValue={searchValue}
+        onSearchChange={onChangeSearch}
+        onSearchSubmit={onSubmitSearch}
+        onResetSearch={onResetSearch}
+        isSearching={isSearching}
+        searchPlaceholder="제목, 내용, 태그 검색"
+        searchDisabled={searchDisabled}
         actionSlot={
           <button
             type="button"
@@ -257,6 +283,13 @@ function PostDetailPage({
       categories={categories.map(({ id, name }) => ({ id, name }))}
       selectedCategoryId={selectedCategoryId}
       onSelectCategory={handleSelectCategory}
+      searchValue={searchValue}
+      onSearchChange={onChangeSearch}
+      onSearchSubmit={onSubmitSearch}
+      onResetSearch={onResetSearch}
+      isSearching={isSearching}
+      searchPlaceholder="제목, 내용, 태그 검색"
+      searchDisabled={searchDisabled}
       actionSlot={
         <button
           type="button"

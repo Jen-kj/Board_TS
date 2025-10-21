@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common'
 import { PostsService } from './posts.service'
 import { CreatePostDto } from './dto/create-post.dto'
@@ -17,8 +18,8 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Get()
-  findAll(): Promise<PostDocument[]> {
-    return this.postsService.findAll()
+  findAll(@Query('search') search?: string): Promise<PostDocument[]> {
+    return this.postsService.findAll(search)
   }
 
   @Get(':id')

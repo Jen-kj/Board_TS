@@ -25,6 +25,12 @@ interface HomePageProps {
   categories: BoardCategory[]
   posts: PostSummary[]
   onRequestCompose: (categoryId: string) => void
+  searchValue: string
+  activeSearchTerm: string
+  onChangeSearch: (value: string) => void
+  onSubmitSearch: () => void
+  onResetSearch: () => void
+  isSearching: boolean
   loading?: boolean
   error?: string | null
 }
@@ -34,6 +40,12 @@ function HomePage({
   categories,
   posts,
   onRequestCompose,
+  searchValue,
+  activeSearchTerm,
+  onChangeSearch,
+  onSubmitSearch,
+  onResetSearch,
+  isSearching,
   loading = false,
   error = null,
 }: HomePageProps): JSX.Element {
@@ -73,6 +85,13 @@ function HomePage({
       categories={categories.map(({ id, name }) => ({ id, name }))}
       selectedCategoryId={selectedCategoryId}
       onSelectCategory={setSelectedCategoryId}
+      searchValue={searchValue}
+      onSearchChange={onChangeSearch}
+      onSearchSubmit={onSubmitSearch}
+      onResetSearch={onResetSearch}
+      isSearching={isSearching}
+      searchPlaceholder="제목, 내용, 태그 검색"
+      searchDisabled={loading}
       actionSlot={
         <button
           type="button"
@@ -110,6 +129,16 @@ function HomePage({
             tags: post.tags,
             thumbnailUrl: post.thumbnailUrl,
           }))}
+          emptyState={
+            isSearching ? (
+              <div className="rounded-[32px] border border-dashed border-[#bad7f2]/55 bg-white/85 p-12 text-center text-[#36577a] shadow-[0_26px_60px_-38px_rgba(31,47,95,0.18)]">
+                <p className="text-sm">
+                  <span className="font-semibold text-[#1f2f5f]">"{activeSearchTerm}"</span>에 해당하는 게시글이 없어요.
+                </p>
+                <p className="mt-2 text-xs">검색어를 다시 입력하거나 초기화해 주세요.</p>
+              </div>
+            ) : undefined
+          }
         />
       )}
     </BoardLayout>

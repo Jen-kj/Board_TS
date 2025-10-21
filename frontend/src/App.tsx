@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import './App.css'
 import PostCompose, { PostDraftPayload } from './features/board/PostCompose'
@@ -21,13 +21,23 @@ function App(): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [composeTargetCategoryId, setComposeTargetCategoryId] = useState<string>('')
+  const [searchInput, setSearchInput] = useState<string>('')
+  const [activeSearchTerm, setActiveSearchTerm] = useState<string>('')
+  const searchTermRef = useRef<string>('')
 
-  const loadPosts = useCallback(async (): Promise<boolean> => {
+  const loadPosts = useCallback(async (search?: string): Promise<boolean> => {
+    const nextSearch = search ?? searchTermRef.current ?? ''
     setIsLoading(true)
     try {
-      const data = await fetchPosts()
+      const data = await fetchPosts(nextSearch)
       setPosts(data)
       setError(null)
+      if (search !== undefined) {
+        searchTermRef.current = nextSearch
+        setActiveSearchTerm(nextSearch)
+      } else if (searchTermRef.current !== activeSearchTerm) {
+        setActiveSearchTerm(searchTermRef.current)
+      }
       return true
     } catch (err) {
       console.error(err)
@@ -39,7 +49,7 @@ function App(): JSX.Element {
   }, [])
 
   useEffect(() => {
-    void loadPosts()
+    void loadPosts('')
   }, [loadPosts])
 
   const handleRequestCompose = (categoryId: string): void => {
@@ -70,6 +80,29 @@ function App(): JSX.Element {
     navigate('/')
   }
 
+  const handleSearchChange = (value: string): void => {
+    setSearchInput(value)
+  }
+
+  const handleSearchSubmit = async (): Promise<void> => {
+    const trimmed = searchInput.trim()
+    setSearchInput(trimmed)
+    const refreshed = await loadPosts(trimmed)
+    if (!refreshed) {
+      setError('검색 결과를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
+    }
+  }
+
+  const handleResetSearch = (): void => {
+    if (searchTermRef.current === '' && searchInput === '') {
+      return
+    }
+    setSearchInput('')
+    void loadPosts('')
+  }
+
+  const isSearching = activeSearchTerm.trim().length > 0
+
   const generalCategories = useMemo(
     () => categories.filter((category) => category.type === 'general'),
     [categories],
@@ -85,6 +118,12 @@ function App(): JSX.Element {
             categories={categories}
             posts={posts}
             onRequestCompose={handleRequestCompose}
+            searchValue={searchInput}
+            activeSearchTerm={activeSearchTerm}
+            onChangeSearch={handleSearchChange}
+            onSubmitSearch={handleSearchSubmit}
+            onResetSearch={handleResetSearch}
+            isSearching={isSearching}
             loading={isLoading}
             error={error}
           />
@@ -109,6 +148,12 @@ function App(): JSX.Element {
             onRequestCompose={handleRequestCompose}
             postCache={posts}
             onRefresh={loadPosts}
+            searchValue={searchInput}
+            onChangeSearch={handleSearchChange}
+            onSubmitSearch={handleSearchSubmit}
+            onResetSearch={handleResetSearch}
+            isSearching={isSearching}
+            searchDisabled={isLoading}
           />
         }
       />

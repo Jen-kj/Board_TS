@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import type { ReactNode } from 'react'
 
 type PostListItem = {
   id: string
@@ -13,9 +14,10 @@ type PostListItem = {
 interface PostListProps {
   posts: PostListItem[]
   loading?: boolean
+  emptyState?: ReactNode
 }
 
-function PostList({ posts, loading = false }: PostListProps): JSX.Element {
+function PostList({ posts, loading = false, emptyState }: PostListProps): JSX.Element {
   if (loading) {
     return (
       <div className="rounded-[32px] border border-[#bad7f2]/55 bg-white/85 px-6 py-10 text-center text-sm font-medium tracking-[0.35em] text-[#36577a] shadow-[0_26px_60px_-38px_rgba(31,47,95,0.18)]">
@@ -25,6 +27,10 @@ function PostList({ posts, loading = false }: PostListProps): JSX.Element {
   }
 
   if (posts.length === 0) {
+    if (emptyState) {
+      return <>{emptyState}</>
+    }
+
     return (
       <div className="rounded-[32px] border border-dashed border-[#bad7f2]/55 bg-white/85 p-12 text-center text-[#36577a] shadow-[0_26px_60px_-38px_rgba(31,47,95,0.18)]">
         아직 등록된 여행 기록이 없어요. 첫 번째 여행 이야기를 남겨보세요!

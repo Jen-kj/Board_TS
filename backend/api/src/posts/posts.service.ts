@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Model } from 'mongoose'
+import { FilterQuery, Model } from 'mongoose'
 import { CreatePostDto } from './dto/create-post.dto'
 import { UpdatePostDto } from './dto/update-post.dto'
 import { Post, PostDocument } from './schemas/post.schema'
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
 
 @Injectable()
 export class PostsService {
@@ -12,8 +16,21 @@ export class PostsService {
     private readonly postModel: Model<PostDocument>
   ) {}
 
-  async findAll(): Promise<PostDocument[]> {
-    return this.postModel.find().sort({ createdAt: -1 }).exec()
+  async findAll(search?: string): Promise<PostDocument[]> {
+    const filter: FilterQuery<PostDocument> = {}
+
+    if (search && search.trim().length > 0) {
+      const escaped = escapeRegex(search.trim())
+      const regex = new RegExp(escaped, 'i')
+      filter.$or = [
+        { title: { $regex: regex } },
+        { content: { $regex: regex } },
+        { excerpt: { $regex: regex } },
+        { tags: { $regex: regex } },
+      ]
+    }
+
+    return this.postModel.find(filter).sort({ createdAt: -1 }).exec()
   }
 
   async findOne(id: string): Promise<PostDocument> {

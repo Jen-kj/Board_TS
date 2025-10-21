@@ -8,8 +8,16 @@ const jsonHeaders: HeadersInit = {
   'Content-Type': 'application/json',
 }
 
-export async function fetchPosts(): Promise<PostSummary[]> {
-  const response = await fetch(`${API_BASE_URL}/posts`)
+export async function fetchPosts(search?: string): Promise<PostSummary[]> {
+  const params = new URLSearchParams()
+  if (search && search.trim().length > 0) {
+    params.set('search', search.trim())
+  }
+  const queryString = params.toString()
+
+  const response = await fetch(
+    `${API_BASE_URL}/posts${queryString.length > 0 ? `?${queryString}` : ''}`,
+  )
   if (!response.ok) {
     throw new Error(`Failed to fetch posts: ${response.status}`)
   }
