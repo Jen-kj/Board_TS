@@ -18,8 +18,16 @@ export class CreatePostDto {
   excerpt!: string
 
   @IsString()
-  @IsNotEmpty()
-  author!: string
+  @IsOptional()
+  author?: string
+
+  @IsString()
+  @IsOptional()
+  authorId?: string
+
+  @IsString()
+  @IsOptional()
+  authorAvatarUrl?: string
 
   @IsArray()
   @IsOptional()

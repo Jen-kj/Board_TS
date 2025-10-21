@@ -6,6 +6,8 @@ type PostListItem = {
   title: string
   excerpt: string
   author: string
+  authorId?: string
+  authorAvatarUrl?: string | null
   createdAt: string
   thumbnailUrl?: string
   tags?: string[]

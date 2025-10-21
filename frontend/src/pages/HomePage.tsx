@@ -15,6 +15,8 @@ export type PostSummary = {
   content: string
   excerpt: string
   author: string
+  authorId: string
+  authorAvatarUrl?: string | null
   createdAt: string
   tags?: string[]
   thumbnailUrl?: string
@@ -125,6 +127,8 @@ function HomePage({
             title: post.title,
             excerpt: post.excerpt,
             author: post.author,
+            authorId: post.authorId,
+            authorAvatarUrl: post.authorAvatarUrl,
             createdAt: post.createdAt,
             tags: post.tags,
             thumbnailUrl: post.thumbnailUrl,

@@ -1,12 +1,24 @@
 import type { PostDraftPayload } from '../features/board/PostCompose'
 import type { PostSummary } from '../pages/HomePage'
 
-const API_BASE_URL =
+export type AuthenticatedUser = {
+  id: string
+  email: string
+  displayName: string
+  avatarUrl?: string | null
+}
+
+export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ?? 'http://localhost:3000/api'
 
 const jsonHeaders: HeadersInit = {
   'Content-Type': 'application/json',
 }
+
+const authHeaders = (token: string): HeadersInit => ({
+  ...jsonHeaders,
+  Authorization: `Bearer ${token}`,
+})
 
 export async function fetchPosts(search?: string): Promise<PostSummary[]> {
   const params = new URLSearchParams()
@@ -36,18 +48,17 @@ export async function fetchPost(id: string): Promise<PostSummary> {
   return data
 }
 
-export async function createPost(payload: PostDraftPayload): Promise<PostSummary> {
+export async function createPost(payload: PostDraftPayload, token: string): Promise<PostSummary> {
   const [firstAttachment] = payload.attachments ?? []
 
   const response = await fetch(`${API_BASE_URL}/posts`, {
     method: 'POST',
-    headers: jsonHeaders,
+    headers: authHeaders(token),
     body: JSON.stringify({
       categoryId: payload.categoryId,
       title: payload.title,
       content: payload.contentHtml,
       excerpt: payload.excerpt,
-      author: '익명 여행자',
       tags: payload.tags,
       thumbnailUrl: firstAttachment?.url,
     }),
@@ -76,4 +87,65 @@ export async function uploadImage(file: File): Promise<{ id: string; name: strin
 
   const data = (await response.json()) as { id: string; name: string; url: string }
   return data
+}
+
+export async function updatePost(
+  id: string,
+  payload: PostDraftPayload,
+  token: string,
+): Promise<PostSummary> {
+  const [firstAttachment] = payload.attachments ?? []
+
+  const response = await fetch(`${API_BASE_URL}/posts/${id}`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify({
+      categoryId: payload.categoryId,
+      title: payload.title,
+      content: payload.contentHtml,
+      excerpt: payload.excerpt,
+      tags: payload.tags,
+      thumbnailUrl: firstAttachment?.url,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to update post: ${response.status}`)
+  }
+
+  const updated = (await response.json()) as PostSummary
+  return updated
+}
+
+export async function deletePost(id: string, token: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/posts/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete post: ${response.status}`)
+  }
+}
+
+export async function fetchCurrentUser(token: string): Promise<AuthenticatedUser> {
+  const response = await fetch(`${API_BASE_URL}/auth/me`, {
+    headers: authHeaders(token),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch current user: ${response.status}`)
+  }
+
+  const data = (await response.json()) as AuthenticatedUser
+  return data
+}
+
+export function buildGoogleAuthUrl(state?: string): string {
+  const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL
+  const url = new URL(`${base}/auth/google`)
+  if (state) {
+    url.searchParams.set('state', state)
+  }
+  return url.toString()
 }

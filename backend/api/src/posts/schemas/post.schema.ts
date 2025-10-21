@@ -33,8 +33,14 @@ export class Post {
   @Prop({ required: true })
   excerpt!: string
 
-  @Prop({ required: true, default: '익명 여행자' })
+  @Prop({ required: true })
+  authorId!: string
+
+  @Prop({ required: true })
   author!: string
+
+  @Prop()
+  authorAvatarUrl?: string
 
   @Prop({ type: [String], default: [] })
   tags!: string[]

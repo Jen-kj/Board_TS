@@ -7,11 +7,15 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common'
 import { PostsService } from './posts.service'
 import { CreatePostDto } from './dto/create-post.dto'
 import { UpdatePostDto } from './dto/update-post.dto'
 import type { PostDocument } from './schemas/post.schema'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { CurrentUser } from '../auth/decorators/current-user.decorator'
+import type { AuthUser } from '../auth/interfaces/auth-user.interface'
 
 @Controller('posts')
 export class PostsController {
@@ -27,21 +31,25 @@ export class PostsController {
     return this.postsService.findOne(id)
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() payload: CreatePostDto): Promise<PostDocument> {
-    return this.postsService.create(payload)
+  create(@CurrentUser() user: AuthUser, @Body() payload: CreatePostDto): Promise<PostDocument> {
+    return this.postsService.create(user, payload)
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(
     @Param('id') id: string,
+    @CurrentUser() user: AuthUser,
     @Body() payload: UpdatePostDto
   ): Promise<PostDocument> {
-    return this.postsService.update(id, payload)
+    return this.postsService.update(id, user, payload)
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async remove(@Param('id') id: string): Promise<void> {
-    await this.postsService.remove(id)
+  async remove(@Param('id') id: string, @CurrentUser() user: AuthUser): Promise<void> {
+    await this.postsService.remove(id, user)
   }
 }

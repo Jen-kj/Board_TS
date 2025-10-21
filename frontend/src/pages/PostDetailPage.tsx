@@ -2,19 +2,23 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import BoardLayout from '../features/board/BoardLayout'
 import type { BoardCategory, PostSummary } from './HomePage'
+import type { AuthenticatedUser } from '../lib/api'
 import { fetchPost } from '../lib/api'
 
 interface PostDetailPageProps {
   categories: BoardCategory[]
   onRequestCompose: (categoryId: string) => void
   postCache: PostSummary[]
-  onRefresh?: () => Promise<void> | void
+  onRefresh?: () => Promise<boolean | void> | void
   searchValue: string
   onChangeSearch: (value: string) => void
   onSubmitSearch: () => void
   onResetSearch: () => void
   isSearching: boolean
   searchDisabled?: boolean
+  onRequestEdit: (postId: string) => void
+  onDeletePost: (postId: string) => Promise<void>
+  currentUser: AuthenticatedUser | null
 }
 
 function PostDetailPage({
@@ -28,6 +32,9 @@ function PostDetailPage({
   onResetSearch,
   isSearching,
   searchDisabled = false,
+  onRequestEdit,
+  onDeletePost,
+  currentUser,
 }: PostDetailPageProps): JSX.Element {
   const { postId } = useParams<{ postId: string }>()
   const [post, setPost] = useState<PostSummary | null>(null)
@@ -36,6 +43,7 @@ function PostDetailPage({
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
     post?.categoryId ?? categories[0]?.id ?? '',
   )
+  const [isDeleting, setIsDeleting] = useState<boolean>(false)
 
   useEffect(() => {
     if (!postId) {
@@ -120,6 +128,7 @@ function PostDetailPage({
   )
 
   const canWrite = selectedCategory?.type === 'general'
+  const canEditPost = post !== null && currentUser !== null && post.authorId === currentUser.id
 
   const handleSelectCategory = (categoryId: string): void => {
     setSelectedCategoryId(categoryId)
@@ -130,6 +139,35 @@ function PostDetailPage({
       return
     }
     onRequestCompose(selectedCategoryId)
+  }
+
+  const handleClickEdit = (): void => {
+    if (!post) {
+      return
+    }
+    onRequestEdit(post.id)
+  }
+
+  const handleClickDelete = async (): Promise<void> => {
+    if (!post || isDeleting) {
+      return
+    }
+
+    const confirmed = window.confirm('정말로 이 게시글을 삭제할까요? 되돌릴 수 없어요.')
+    if (!confirmed) {
+      return
+    }
+
+    setIsDeleting(true)
+
+    try {
+      await onDeletePost(post.id)
+    } catch (err) {
+      console.error(err)
+      setError('게시글 삭제 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   const renderBody = (): JSX.Element => {
@@ -157,20 +195,58 @@ function PostDetailPage({
 
     return (
       <article className="rounded-[32px] border border-[#bad7f2]/60 bg-white/90 p-10 shadow-[0_24px_60px_-40px_rgba(31,47,95,0.22)]">
-        <div className="flex justify-between">
+        <div className="flex items-center justify-between gap-4">
           <Link
             to="/"
             className="inline-flex items-center justify-center rounded-full border border-[#bad7f2] px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-[#1f2f5f] transition hover:bg-[#bad7f2] hover:text-[#1f2f5f]/80"
           >
             목록으로
           </Link>
+          {canEditPost ? (
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleClickEdit}
+                className="rounded-full border border-[#bad7f2] px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-[#1f2f5f] transition hover:bg-[#bad7f2]/60 hover:text-[#1f2f5f]"
+              >
+                수정
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleClickDelete()
+                }}
+                disabled={isDeleting}
+                className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition ${
+                  isDeleting
+                    ? 'cursor-not-allowed border-[#bad7f2]/60 bg-[#bad7f2]/30 text-[#7ea6cb]'
+                    : 'border-red-200 text-red-600 hover:bg-red-100'
+                }`}
+              >
+                {isDeleting ? '삭제 중...' : '삭제'}
+              </button>
+            </div>
+          ) : null}
         </div>
         <div className="mt-6 text-xs font-semibold uppercase tracking-[0.35em] text-[#36577a]">
           {category?.name ?? '기타'}
         </div>
         <h1 className="mt-4 text-3xl font-bold leading-tight text-[#1f2f5f]">{post.title}</h1>
         <div className="mt-6 flex flex-wrap gap-6 text-xs uppercase tracking-[0.35em] text-[#4e6e8e]">
-          <span>{post.author}</span>
+          <span className="flex items-center gap-3">
+            {post.authorAvatarUrl ? (
+              <img
+                src={post.authorAvatarUrl}
+                alt={`${post.author} 프로필 이미지`}
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            ) : (
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#bad7f2]/60 text-[11px] font-semibold text-[#1f2f5f]">
+                {(post.author?.slice(0, 1) ?? '?').toUpperCase()}
+              </span>
+            )}
+            <span>{post.author ?? '알 수 없음'}</span>
+          </span>
           {formattedDate ? <span>{formattedDate}</span> : null}
         </div>
 

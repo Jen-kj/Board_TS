@@ -1,13 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Route, Routes, useNavigate } from 'react-router-dom'
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import './App.css'
 import PostCompose, { PostDraftPayload } from './features/board/PostCompose'
 import HomePage, { BoardCategory, PostSummary } from './pages/HomePage'
 import PostDetailPage from './pages/PostDetailPage'
-import { createPost, fetchPosts } from './lib/api'
+import PostEditPage from './pages/PostEditPage'
+import AuthPage from './pages/AuthPage'
+import AuthCallbackPage from './pages/AuthCallbackPage'
+import { createPost, deletePost, fetchPosts, updatePost } from './lib/api'
+import { useAuth } from './features/auth/useAuth'
 
 function App(): JSX.Element {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { user, token, loading: authLoading, setPendingRedirect } = useAuth()
   const categories = useMemo<BoardCategory[]>(
     () => [
       { id: 'notice', name: '공지사항', type: 'notice' },
@@ -46,21 +52,75 @@ function App(): JSX.Element {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [activeSearchTerm])
 
   useEffect(() => {
     void loadPosts('')
   }, [loadPosts])
 
+  useEffect(() => {
+    if (location.pathname === '/compose') {
+      const params = new URLSearchParams(location.search)
+      const categoryParam = params.get('category')
+      if (categoryParam) {
+        setComposeTargetCategoryId(categoryParam)
+      }
+    }
+  }, [location])
+
+  useEffect(() => {
+    if (authLoading) {
+      return
+    }
+
+    if (!token) {
+      const isAuthPath =
+        location.pathname === '/auth' || location.pathname.startsWith('/auth/callback')
+
+      if (isAuthPath) {
+        return
+      }
+
+      const currentPath = `${location.pathname}${location.search}`
+      setPendingRedirect(currentPath || '/')
+      navigate(`/auth?next=${encodeURIComponent(currentPath || '/')}`, { replace: true })
+    }
+  }, [authLoading, token, location, navigate, setPendingRedirect])
+
   const handleRequestCompose = (categoryId: string): void => {
+    const nextPath = `/compose${categoryId ? `?category=${categoryId}` : ''}`
     setComposeTargetCategoryId(categoryId)
-    navigate('/compose')
+
+    if (!token) {
+      setPendingRedirect(nextPath)
+      navigate(`/auth?next=${encodeURIComponent(nextPath)}`)
+      return
+    }
+
+    navigate(nextPath)
+  }
+
+  const handleRequestEdit = (postId: string): void => {
+    const nextPath = `/posts/${postId}/edit`
+    if (!token) {
+      setPendingRedirect(nextPath)
+      navigate(`/auth?next=${encodeURIComponent(nextPath)}`)
+      return
+    }
+    navigate(nextPath)
   }
 
   const handleSubmitPost = async (draft: PostDraftPayload): Promise<void> => {
+    if (!token) {
+      const nextPath = `/compose${composeTargetCategoryId ? `?category=${composeTargetCategoryId}` : ''}`
+      setPendingRedirect(nextPath)
+      navigate(`/auth?next=${encodeURIComponent(nextPath)}`)
+      return
+    }
+
     try {
       setIsLoading(true)
-      const created = await createPost(draft)
+      const created = await createPost(draft, token)
       const refreshed = await loadPosts()
       if (!refreshed) {
         setError('게시글은 저장됐지만 목록을 다시 불러오지 못했어요. 잠시 후 새로고침해 주세요.')
@@ -78,6 +138,61 @@ function App(): JSX.Element {
   const handleCancelCompose = (): void => {
     setComposeTargetCategoryId('')
     navigate('/')
+  }
+
+  const handleCancelEdit = (postId: string): void => {
+    navigate(`/posts/${postId}`)
+  }
+
+  const handleUpdatePost = async (postId: string, draft: PostDraftPayload): Promise<void> => {
+    if (!token) {
+      const nextPath = `/posts/${postId}/edit`
+      setPendingRedirect(nextPath)
+      navigate(`/auth?next=${encodeURIComponent(nextPath)}`)
+      return
+    }
+    try {
+      setIsLoading(true)
+      await updatePost(postId, draft, token)
+      const refreshed = await loadPosts()
+      if (!refreshed) {
+        setError('게시글은 수정됐지만 목록을 다시 불러오지 못했어요. 잠시 후 새로고침해 주세요.')
+      } else {
+        setError(null)
+      }
+      navigate(`/posts/${postId}`)
+    } catch (err) {
+      console.error(err)
+      setError('게시글 수정 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDeletePost = async (postId: string): Promise<void> => {
+    if (!token) {
+      const nextPath = `/posts/${postId}`
+      setPendingRedirect(nextPath)
+      navigate(`/auth?next=${encodeURIComponent(nextPath)}`)
+      throw new Error('로그인이 필요합니다.')
+    }
+    try {
+      setIsLoading(true)
+      await deletePost(postId, token)
+      const refreshed = await loadPosts()
+      if (!refreshed) {
+        setError('게시글은 삭제됐지만 목록을 다시 불러오지 못했어요. 잠시 후 새로고침해 주세요.')
+      } else {
+        setError(null)
+      }
+      navigate('/')
+    } catch (err) {
+      console.error(err)
+      setError('게시글 삭제 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.')
+      throw err instanceof Error ? err : new Error('게시글 삭제 실패')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSearchChange = (value: string): void => {
@@ -108,8 +223,12 @@ function App(): JSX.Element {
     [categories],
   )
 
+  const combinedLoading = isLoading || authLoading
+
   return (
     <Routes>
+      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route
         path="/"
         element={
@@ -124,7 +243,7 @@ function App(): JSX.Element {
             onSubmitSearch={handleSearchSubmit}
             onResetSearch={handleResetSearch}
             isSearching={isSearching}
-            loading={isLoading}
+            loading={combinedLoading}
             error={error}
           />
         }
@@ -137,6 +256,8 @@ function App(): JSX.Element {
             defaultCategoryId={composeTargetCategoryId}
             onCancel={handleCancelCompose}
             onSubmit={handleSubmitPost}
+            headline="여행 기록 작성"
+            description={user ? `${user.displayName}님의 여행 이야기를 공유해 주세요.` : '로그인 후 작성이 가능합니다.'}
           />
         }
       />
@@ -153,7 +274,23 @@ function App(): JSX.Element {
             onSubmitSearch={handleSearchSubmit}
             onResetSearch={handleResetSearch}
             isSearching={isSearching}
-            searchDisabled={isLoading}
+            searchDisabled={combinedLoading}
+            onRequestEdit={handleRequestEdit}
+            onDeletePost={handleDeletePost}
+            currentUser={user ?? null}
+          />
+        }
+      />
+      <Route
+        path="/posts/:postId/edit"
+        element={
+          <PostEditPage
+            categories={categories}
+            postCache={posts}
+            onSubmit={handleUpdatePost}
+            onCancel={handleCancelEdit}
+            loading={combinedLoading}
+            currentUser={user ?? null}
           />
         }
       />

@@ -20,6 +20,10 @@ interface PostComposeProps {
   defaultCategoryId?: string
   onCancel: () => void
   onSubmit: (payload: PostDraftPayload) => Promise<void> | void
+  initialDraft?: Partial<PostDraftPayload> & { contentHtml?: string }
+  headline?: string
+  description?: string
+  submitLabel?: string
 }
 
 const INITIAL_EDITOR_HTML = '<p><br /></p>'
@@ -29,12 +33,18 @@ function PostCompose({
   defaultCategoryId,
   onCancel,
   onSubmit,
+  initialDraft,
+  headline = '여행 및 버킷리스트 기록 작성',
+  description = '떠나고 싶은 여행 버킷리스트나 다녀온 후기, 추천 코스를 자유롭게 공유해 주세요.',
+  submitLabel = '등록',
 }: PostComposeProps): JSX.Element {
-  const [title, setTitle] = useState('')
-  const [categoryId, setCategoryId] = useState(defaultCategoryId ?? '')
-  const [tagsInput, setTagsInput] = useState('')
+  const [title, setTitle] = useState(initialDraft?.title ?? '')
+  const [categoryId, setCategoryId] = useState(initialDraft?.categoryId ?? defaultCategoryId ?? '')
+  const [tagsInput, setTagsInput] = useState(
+    initialDraft?.tags ? initialDraft.tags.join(', ') : ''
+  )
   const [attachments, setAttachments] = useState<Array<{ id: string; name: string; url: string }>>(
-    []
+    initialDraft?.attachments ?? []
   )
   const [selectedColor, setSelectedColor] = useState('#333333')
   const [isUploadingImage, setIsUploadingImage] = useState(false)
@@ -47,6 +57,11 @@ function PostCompose({
   )
 
   useEffect(() => {
+    if (initialDraft?.categoryId) {
+      setCategoryId(initialDraft.categoryId)
+      return
+    }
+
     if (defaultCategoryId) {
       setCategoryId(defaultCategoryId)
       return
@@ -55,14 +70,14 @@ function PostCompose({
     if (!categoryId && availableCategories.length > 0) {
       setCategoryId(availableCategories[0].id)
     }
-  }, [defaultCategoryId, availableCategories, categoryId])
+  }, [initialDraft, defaultCategoryId, availableCategories, categoryId])
 
   useEffect(() => {
     if (!editorRef.current) {
       return
     }
     const editor = editorRef.current
-    editor.innerHTML = INITIAL_EDITOR_HTML
+    editor.innerHTML = initialDraft?.contentHtml ?? INITIAL_EDITOR_HTML
     const selection = window.getSelection()
     if (!selection) {
       return
@@ -73,7 +88,7 @@ function PostCompose({
     selection.removeAllRanges()
     selection.addRange(range)
     savedSelectionRef.current = range
-  }, [])
+  }, [initialDraft])
 
   useEffect(() => {
     const handleSelectionChange = (): void => {
@@ -95,6 +110,34 @@ function PostCompose({
       document.removeEventListener('selectionchange', handleSelectionChange)
     }
   }, [])
+
+  useEffect(() => {
+    if (!initialDraft) {
+      return
+    }
+
+    setTitle(initialDraft.title ?? '')
+    if (initialDraft.categoryId) {
+      setCategoryId(initialDraft.categoryId)
+    }
+    setTagsInput(initialDraft.tags ? initialDraft.tags.join(', ') : '')
+    setAttachments(initialDraft.attachments ?? [])
+
+    if (editorRef.current) {
+      editorRef.current.innerHTML = initialDraft.contentHtml ?? INITIAL_EDITOR_HTML
+      const selection = window.getSelection()
+      if (selection) {
+        const range = document.createRange()
+        range.selectNodeContents(editorRef.current)
+        range.collapse(false)
+        selection.removeAllRanges()
+        selection.addRange(range)
+        savedSelectionRef.current = range
+      } else {
+        savedSelectionRef.current = null
+      }
+    }
+  }, [initialDraft])
 
   const restoreSelection = (): void => {
     const editor = editorRef.current
@@ -302,10 +345,8 @@ function PostCompose({
   return (
     <div className="mx-auto max-w-3xl px-6 py-8 text-[#1f2f5f]">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-[#1f2f5f]">여행 및 버킷리스트 기록 작성</h1>
-        <p className="mt-2 text-sm text-[#36577a]">
-          떠나고 싶은 여행 버킷리스트나 다녀온 후기, 추천 코스를 자유롭게 공유해 주세요.
-        </p>
+        <h1 className="text-3xl font-bold text-[#1f2f5f]">{headline}</h1>
+        <p className="mt-2 text-sm text-[#36577a]">{description}</p>
       </header>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -457,7 +498,7 @@ function PostCompose({
             type="submit"
             className="rounded bg-[#1f2f5f] px-4 py-2 text-sm font-medium text-white hover:bg-[#1b284f]"
           >
-            등록
+            {submitLabel}
           </button>
         </div>
       </form>
