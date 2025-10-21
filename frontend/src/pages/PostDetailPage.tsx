@@ -175,16 +175,6 @@ function PostDetailPage({
           </ul>
         ) : null}
 
-        {post.thumbnailUrl ? (
-          <div className="mt-8 overflow-hidden rounded-[24px]">
-            <img
-              src={post.thumbnailUrl}
-              alt={`${post.title} 대표 이미지`}
-              className="max-h-[460px] w-full object-cover"
-            />
-          </div>
-        ) : null}
-
         <div
           className="prose prose-slate mt-10 max-w-none text-[#36577a]"
           dangerouslySetInnerHTML={{ __html: post.content }}

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { MongooseModule } from '@nestjs/mongoose'
 import { PostsModule } from './posts/posts.module'
+import { UploadsModule } from './uploads/uploads.module'
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { PostsModule } from './posts/posts.module'
       process.env.MONGODB_URI ?? 'mongodb://localhost:27017/roamlog'
     ),
     PostsModule,
+    UploadsModule,
   ],
 })
 export class AppModule {}

@@ -52,3 +52,20 @@ export async function createPost(payload: PostDraftPayload): Promise<PostSummary
   const created = (await response.json()) as PostSummary
   return created
 }
+
+export async function uploadImage(file: File): Promise<{ id: string; name: string; url: string }> {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await fetch(`${API_BASE_URL}/uploads/images`, {
+    method: 'POST',
+    body: formData,
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to upload image: ${response.status}`)
+  }
+
+  const data = (await response.json()) as { id: string; name: string; url: string }
+  return data
+}

@@ -3,6 +3,7 @@
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import type { BoardCategory } from '../../pages/HomePage'
+import { uploadImage } from '../../lib/api'
 
 export type PostDraftPayload = {
   categoryId: string
@@ -36,6 +37,7 @@ function PostCompose({
     []
   )
   const [selectedColor, setSelectedColor] = useState('#333333')
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
   const editorRef = useRef<HTMLDivElement | null>(null)
   const savedSelectionRef = useRef<Range | null>(null)
 
@@ -160,37 +162,42 @@ function PostCompose({
     savedSelectionRef.current = range
   }
 
-  const handleInsertImage = (event: ChangeEvent<HTMLInputElement>): void => {
+  const handleInsertImage = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = event.target.files?.[0]
     if (!file || !editorRef.current) {
+      event.target.value = ''
       return
     }
 
-    const id =
-      typeof crypto !== 'undefined' && 'randomUUID' in crypto
-        ? crypto.randomUUID()
-        : `img-${Date.now()}`
+    setIsUploadingImage(true)
+    try {
+      const uploaded = await uploadImage(file)
 
-    const url = URL.createObjectURL(file)
+      const imageNode = document.createElement('img')
+      imageNode.src = uploaded.url
+      imageNode.alt = uploaded.name ?? file.name
+      imageNode.dataset.attachmentId = uploaded.id
+      imageNode.className = 'my-4 max-h-80 max-w-full rounded-md object-cover'
 
-    const imageNode = document.createElement('img')
-    imageNode.src = url
-    imageNode.alt = file.name
-    imageNode.dataset.attachmentId = id
-    imageNode.className = 'my-4 max-h-80 max-w-full rounded-md object-cover'
+      insertNodeAtCaret(imageNode)
 
-    insertNodeAtCaret(imageNode)
-
-    setAttachments((prev) => [...prev, { id, name: file.name, url }])
-
-    event.target.value = ''
+      setAttachments((prev) => [
+        ...prev,
+        { id: uploaded.id, name: uploaded.name ?? file.name, url: uploaded.url },
+      ])
+    } catch (err) {
+      console.error(err)
+      alert('이미지를 업로드하지 못했어요. 잠시 후 다시 시도해 주세요.')
+    } finally {
+      setIsUploadingImage(false)
+      event.target.value = ''
+    }
   }
 
   const handleRemoveAttachment = (attachmentId: string): void => {
     setAttachments((prev) => {
       const target = prev.find((item) => item.id === attachmentId)
       if (target) {
-        URL.revokeObjectURL(target.url)
         const imgNode = editorRef.current?.querySelector<HTMLImageElement>(
           `img[data-attachment-id="${attachmentId}"]`
         )
@@ -222,6 +229,11 @@ function PostCompose({
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
+
+    if (isUploadingImage) {
+      alert('이미지 업로드가 끝날 때까지 잠시만 기다려 주세요.')
+      return
+    }
 
     if (!title.trim()) {
       alert('제목을 입력해 주세요.')
@@ -280,9 +292,6 @@ function PostCompose({
         }
       }
       setTagsInput('')
-      attachments.forEach((attachment) => {
-        URL.revokeObjectURL(attachment.url)
-      })
       setAttachments([])
     } catch (err) {
       console.error(err)
@@ -371,10 +380,25 @@ function PostCompose({
                   }}
                 />
               </label>
-              <label className="cursor-pointer rounded border border-[#bad7f2]/60 px-2 py-1 text-xs font-medium text-[#1f2f5f] hover:bg-[#bad7f2]/20">
+              <label
+                className={`cursor-pointer rounded border border-[#bad7f2]/60 px-2 py-1 text-xs font-medium text-[#1f2f5f] transition ${
+                  isUploadingImage ? 'cursor-not-allowed opacity-60' : 'hover:bg-[#bad7f2]/20'
+                }`}
+              >
                 사진 추가
-                <input type="file" accept="image/*" className="hidden" onChange={handleInsertImage} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(changeEvent) => {
+                    void handleInsertImage(changeEvent)
+                  }}
+                  disabled={isUploadingImage}
+                />
               </label>
+              {isUploadingImage ? (
+                <span className="text-xs text-[#36577a]">업로드 중...</span>
+              ) : null}
             </div>
 
             <div
