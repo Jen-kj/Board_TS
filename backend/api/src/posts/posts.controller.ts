@@ -52,4 +52,16 @@ export class PostsController {
   async remove(@Param('id') id: string, @CurrentUser() user: AuthUser): Promise<void> {
     await this.postsService.remove(id, user)
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/likes')
+  like(@Param('id') id: string, @CurrentUser() user: AuthUser): Promise<PostDocument> {
+    return this.postsService.like(id, user)
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/likes')
+  unlike(@Param('id') id: string, @CurrentUser() user: AuthUser): Promise<PostDocument> {
+    return this.postsService.unlike(id, user)
+  }
 }

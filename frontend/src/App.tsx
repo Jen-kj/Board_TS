@@ -37,7 +37,7 @@ function App(): JSX.Element {
     setIsLoading(true)
     try {
       const data = await fetchPosts(nextSearch)
-      setPosts(data)
+      setPosts(data.map((item) => ({ ...item, likes: item.likes ?? [] })))
       setError(null)
       if (search !== undefined) {
         searchTermRef.current = nextSearch

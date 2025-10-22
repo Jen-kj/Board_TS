@@ -21,6 +21,7 @@ export type PostSummary = {
   createdAt: string
   tags?: string[]
   thumbnailUrl?: string
+  likes: string[]
 }
 
 interface HomePageProps {
@@ -125,6 +126,7 @@ function HomePage({
             createdAt: post.createdAt,
             tags: post.tags,
             thumbnailUrl: post.thumbnailUrl,
+            likesCount: post.likes?.length ?? 0,
           }))}
           emptyState={
             isSearching ? (

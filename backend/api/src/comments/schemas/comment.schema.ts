@@ -38,6 +38,9 @@ export class Comment {
 
   @Prop({ required: true })
   content!: string
+
+  @Prop({ type: [String], default: [] })
+  likes!: string[]
 }
 
 export type CommentDocument = HydratedDocument<Comment>

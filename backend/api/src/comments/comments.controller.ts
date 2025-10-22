@@ -46,4 +46,24 @@ export class CommentsController {
   ): Promise<void> {
     await this.commentsService.remove(postId, commentId, user)
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':commentId/likes')
+  like(
+    @Param('postId') postId: string,
+    @Param('commentId') commentId: string,
+    @CurrentUser() user: AuthUser,
+  ): Promise<CommentDocument> {
+    return this.commentsService.like(postId, commentId, user)
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':commentId/likes')
+  unlike(
+    @Param('postId') postId: string,
+    @Param('commentId') commentId: string,
+    @CurrentUser() user: AuthUser,
+  ): Promise<CommentDocument> {
+    return this.commentsService.unlike(postId, commentId, user)
+  }
 }

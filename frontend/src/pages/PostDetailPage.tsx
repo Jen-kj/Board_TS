@@ -4,7 +4,17 @@ import BoardLayout from '../features/board/BoardLayout'
 import BoardHeaderActions from '../features/board/BoardHeaderActions'
 import type { BoardCategory, PostSummary } from './HomePage'
 import type { AuthenticatedUser, PostComment } from '../lib/api'
-import { createComment, deleteComment, fetchComments, fetchPost, updateComment } from '../lib/api'
+import {
+  createComment,
+  deleteComment,
+  fetchComments,
+  fetchPost,
+  likeComment,
+  likePost,
+  unlikeComment,
+  unlikePost,
+  updateComment,
+} from '../lib/api'
 
 function formatCommentDate(value: string): string {
   try {
@@ -77,6 +87,8 @@ function PostDetailPage({
   const [editingInput, setEditingInput] = useState<string>('')
   const [isUpdatingComment, setIsUpdatingComment] = useState<boolean>(false)
   const [commentActionError, setCommentActionError] = useState<string | null>(null)
+  const [isTogglingPostLike, setIsTogglingPostLike] = useState<boolean>(false)
+  const [togglingCommentLikeId, setTogglingCommentLikeId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!postId) {
@@ -87,7 +99,7 @@ function PostDetailPage({
 
     const cached = postCache.find((item) => item.id === postId)
     if (cached) {
-      setPost(cached)
+      setPost({ ...cached, likes: cached.likes ?? [] })
       setLoading(false)
     } else {
       setLoading(true)
@@ -100,7 +112,7 @@ function PostDetailPage({
         if (!isMounted) {
           return
         }
-        setPost(data)
+        setPost({ ...data, likes: data.likes ?? [] })
         setError(null)
         onRefresh?.()
       })
@@ -134,7 +146,7 @@ function PostDetailPage({
     setCommentsLoading(true)
     try {
       const data = await fetchComments(postId)
-      setComments(data)
+      setComments(data.map((item) => ({ ...item, likes: item.likes ?? [] })))
       setCommentsError(null)
       setReplyTargetId(null)
       setReplyInput('')
@@ -144,6 +156,7 @@ function PostDetailPage({
       setDeletingCommentId(null)
       setIsSubmittingReply(false)
       setIsUpdatingComment(false)
+      setTogglingCommentLikeId(null)
     } catch (err) {
       console.error(err)
       setCommentsError('댓글을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
@@ -265,6 +278,39 @@ function PostDetailPage({
     }
   }
 
+  const handleTogglePostLike = async (): Promise<void> => {
+    if (!postId || !post) {
+      return
+    }
+
+    if (!authToken) {
+      onRequireAuth(`/posts/${postId}`)
+      return
+    }
+
+    if (isTogglingPostLike) {
+      return
+    }
+
+    const isLiked = currentUser ? post.likes.includes(currentUser.id) : false
+
+    setCommentActionError(null)
+    setIsTogglingPostLike(true)
+
+    try {
+      const updated = isLiked
+        ? await unlikePost(post.id, authToken)
+        : await likePost(post.id, authToken)
+      setPost({ ...updated, likes: updated.likes ?? [] })
+      void onRefresh?.()
+    } catch (err) {
+      console.error(err)
+      setCommentActionError('좋아요 처리 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
+    } finally {
+      setIsTogglingPostLike(false)
+    }
+  }
+
   const handleSubmitComment = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
     if (!postId) {
@@ -288,7 +334,7 @@ function PostDetailPage({
 
     try {
       const created = await createComment(postId, trimmed, authToken)
-      setComments((prev) => [...prev, created])
+      setComments((prev) => [...prev, { ...created, likes: created.likes ?? [] }])
       setCommentInput('')
     } catch (err) {
       console.error(err)
@@ -348,7 +394,7 @@ function PostDetailPage({
 
     try {
       const created = await createComment(postId, trimmed, authToken, parentCommentId)
-      setComments((prev) => [...prev, created])
+      setComments((prev) => [...prev, { ...created, likes: created.likes ?? [] }])
       setReplyTargetId(null)
       setReplyInput('')
     } catch (err) {
@@ -424,6 +470,42 @@ function PostDetailPage({
     }
   }
 
+  const handleToggleCommentLike = async (comment: PostComment): Promise<void> => {
+    if (!postId) {
+      return
+    }
+
+    if (!authToken) {
+      onRequireAuth(`/posts/${postId}`)
+      return
+    }
+
+    if (togglingCommentLikeId) {
+      return
+    }
+
+    const isLiked = currentUser ? comment.likes.includes(currentUser.id) : false
+
+    setCommentActionError(null)
+    setTogglingCommentLikeId(comment.id)
+
+    try {
+      const updated = isLiked
+        ? await unlikeComment(postId, comment.id, authToken)
+        : await likeComment(postId, comment.id, authToken)
+      setComments((prev) =>
+        prev.map((item) =>
+          item.id === comment.id ? { ...item, likes: updated.likes ?? [] } : item,
+        ),
+      )
+    } catch (err) {
+      console.error(err)
+      setCommentActionError('좋아요 처리 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
+    } finally {
+      setTogglingCommentLikeId(null)
+    }
+  }
+
   const handleDeleteComment = async (commentId: string): Promise<void> => {
     if (!postId) {
       return
@@ -465,6 +547,10 @@ function PostDetailPage({
 
       setComments((prev) => prev.filter((comment) => !idsToRemove.has(comment.id)))
 
+      if (togglingCommentLikeId && idsToRemove.has(togglingCommentLikeId)) {
+        setTogglingCommentLikeId(null)
+      }
+
       if (replyTargetId && idsToRemove.has(replyTargetId)) {
         setReplyTargetId(null)
         setReplyInput('')
@@ -492,6 +578,9 @@ function PostDetailPage({
     const createdText = formatCommentDate(comment.createdAt)
     const isEdited =
       comment.updatedAt !== undefined && comment.updatedAt !== null && comment.updatedAt !== comment.createdAt
+    const commentLikesCount = comment.likes?.length ?? 0
+    const isCommentLiked = currentUser ? comment.likes.includes(currentUser.id) : false
+    const isCommentLikePending = togglingCommentLikeId === comment.id
     const containerClass = depth > 0
       ? 'rounded-[20px] border border-[#bad7f2]/45 bg-white/80 px-5 py-4 shadow-[0_12px_28px_-24px_rgba(31,47,95,0.18)]'
       : 'rounded-[24px] border border-[#bad7f2]/55 bg-white/85 px-6 py-5 shadow-[0_22px_40px_-36px_rgba(31,47,95,0.2)]'
@@ -566,7 +655,28 @@ function PostDetailPage({
 
         {!isEditing ? (
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[10px] uppercase tracking-[0.28em] text-[#4e6e8e]">
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  void handleToggleCommentLike(comment)
+                }}
+                disabled={isCommentLikePending}
+                aria-label={isCommentLiked ? '좋아요 취소' : '좋아요'}
+                title={isCommentLiked ? '좋아요 취소' : '좋아요'}
+                className={`flex items-center justify-center rounded-full border px-3 py-1 text-base transition ${
+                  isCommentLikePending
+                    ? 'cursor-not-allowed border-[#bad7f2]/60 bg-[#bad7f2]/30 text-[#7ea6cb]'
+                    : isCommentLiked
+                        ? 'border-[#e25555]/50 bg-[#ffe2e8] text-[#e25555]'
+                        : 'border-[#bad7f2]/60 text-[#e25555] hover:bg-[#bad7f2]/30'
+                }`}
+              >
+                ❤️
+              </button>
+              <span className="text-[11px] font-semibold tracking-[0.2em] text-[#36577a]">{commentLikesCount}</span>
+            </div>
+            <div className="flex items-center gap-2">
               {isAuthor ? (
                 <>
                   <button
@@ -594,26 +704,26 @@ function PostDetailPage({
                   </button>
                 </>
               ) : null}
+              {isReplyingHere ? (
+                <button
+                  type="button"
+                  onClick={handleCancelReply}
+                  className="rounded-full border border-[#bad7f2]/60 px-3 py-1 transition hover:bg-[#bad7f2]/35"
+                >
+                  답글 취소
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleStartReply(comment.id)
+                  }}
+                  className="rounded-full border border-[#bad7f2]/60 px-3 py-1 transition hover:bg-[#bad7f2]/35"
+                >
+                  답글
+                </button>
+              )}
             </div>
-            {isReplyingHere ? (
-              <button
-                type="button"
-                onClick={handleCancelReply}
-                className="rounded-full border border-[#bad7f2]/60 px-3 py-1 transition hover:bg-[#bad7f2]/35"
-              >
-                답글 취소
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  handleStartReply(comment.id)
-                }}
-                className="rounded-full border border-[#bad7f2]/60 px-3 py-1 transition hover:bg-[#bad7f2]/35"
-              >
-                답글
-              </button>
-            )}
           </div>
         ) : null}
 
@@ -693,6 +803,8 @@ function PostDetailPage({
       )
     }
 
+    const postLikesCount = post.likes?.length ?? 0
+    const postLikedByUser = currentUser ? post.likes.includes(currentUser.id) : false
     return (
       <div className="space-y-8">
         <article className="rounded-[32px] border border-[#bad7f2]/60 bg-white/90 p-10 shadow-[0_24px_60px_-40px_rgba(31,47,95,0.22)]">
@@ -763,6 +875,28 @@ function PostDetailPage({
               ))}
             </ul>
           ) : null}
+
+          <div className="mt-8 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                void handleTogglePostLike()
+              }}
+              disabled={isTogglingPostLike}
+              aria-label={postLikedByUser ? '좋아요 취소' : '좋아요'}
+              title={postLikedByUser ? '좋아요 취소' : '좋아요'}
+              className={`flex items-center justify-center rounded-full border px-4 py-2 text-lg transition ${
+                isTogglingPostLike
+                  ? 'cursor-not-allowed border-[#bad7f2]/60 bg-[#bad7f2]/30 text-[#7ea6cb]'
+                  : postLikedByUser
+                      ? 'border-[#e25555]/50 bg-[#ffe2e8] text-[#e25555]'
+                      : 'border-[#bad7f2]/60 text-[#e25555] hover:bg-[#bad7f2]/30'
+              }`}
+            >
+              ❤️
+            </button>
+            <span className="text-sm font-semibold text-[#36577a]">{postLikesCount}</span>
+          </div>
 
           <div
             className="prose prose-slate mt-10 max-w-none text-[#36577a]"

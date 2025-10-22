@@ -93,4 +93,32 @@ export class PostsService {
 
     await doc.deleteOne()
   }
+
+  async like(id: string, user: AuthUser): Promise<PostDocument> {
+    const post = await this.postModel.findById(id).exec()
+    if (!post) {
+      throw new NotFoundException('Post not found')
+    }
+
+    if (!post.likes.includes(user.id)) {
+      post.likes.push(user.id)
+      await post.save()
+    }
+
+    return post
+  }
+
+  async unlike(id: string, user: AuthUser): Promise<PostDocument> {
+    const post = await this.postModel.findById(id).exec()
+    if (!post) {
+      throw new NotFoundException('Post not found')
+    }
+
+    if (post.likes.includes(user.id)) {
+      post.likes = post.likes.filter((likeUserId) => likeUserId !== user.id)
+      await post.save()
+    }
+
+    return post
+  }
 }

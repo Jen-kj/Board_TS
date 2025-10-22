@@ -47,6 +47,9 @@ export class Post {
 
   @Prop()
   thumbnailUrl?: string
+
+  @Prop({ type: [String], default: [] })
+  likes!: string[]
 }
 
 export type PostDocument = HydratedDocument<Post>

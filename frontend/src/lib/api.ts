@@ -11,6 +11,7 @@ export type PostComment = {
   createdAt: string
   updatedAt?: string
   parentId?: string | null
+  likes: string[]
 }
 
 export type AuthProvider = 'google' | 'local'
@@ -146,6 +147,32 @@ export async function deletePost(id: string, token: string): Promise<void> {
   }
 }
 
+export async function likePost(postId: string, token: string): Promise<PostSummary> {
+  const response = await fetch(`${API_BASE_URL}/posts/${postId}/likes`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  })
+
+  if (!response.ok) {
+    throw new Error(await extractErrorMessage(response))
+  }
+
+  return (await response.json()) as PostSummary
+}
+
+export async function unlikePost(postId: string, token: string): Promise<PostSummary> {
+  const response = await fetch(`${API_BASE_URL}/posts/${postId}/likes`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  })
+
+  if (!response.ok) {
+    throw new Error(await extractErrorMessage(response))
+  }
+
+  return (await response.json()) as PostSummary
+}
+
 export async function fetchCurrentUser(token: string): Promise<AuthenticatedUser> {
   const response = await fetch(`${API_BASE_URL}/auth/me`, {
     headers: authHeaders(token),
@@ -209,6 +236,40 @@ export async function updateComment(
     method: 'PATCH',
     headers: authHeaders(token),
     body: JSON.stringify({ content }),
+  })
+
+  if (!response.ok) {
+    throw new Error(await extractErrorMessage(response))
+  }
+
+  return (await response.json()) as PostComment
+}
+
+export async function likeComment(
+  postId: string,
+  commentId: string,
+  token: string,
+): Promise<PostComment> {
+  const response = await fetch(`${API_BASE_URL}/posts/${postId}/comments/${commentId}/likes`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  })
+
+  if (!response.ok) {
+    throw new Error(await extractErrorMessage(response))
+  }
+
+  return (await response.json()) as PostComment
+}
+
+export async function unlikeComment(
+  postId: string,
+  commentId: string,
+  token: string,
+): Promise<PostComment> {
+  const response = await fetch(`${API_BASE_URL}/posts/${postId}/comments/${commentId}/likes`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
   })
 
   if (!response.ok) {

@@ -111,4 +111,34 @@ export class CommentsService {
 
     await this.commentModel.deleteMany({ _id: { $in: Array.from(idsToDelete) } }).exec()
   }
+
+  async like(postId: string, commentId: string, user: AuthUser): Promise<CommentDocument> {
+    const comment = await this.commentModel.findOne({ _id: commentId, postId }).exec()
+
+    if (!comment) {
+      throw new NotFoundException('Comment not found')
+    }
+
+    if (!comment.likes.includes(user.id)) {
+      comment.likes.push(user.id)
+      await comment.save()
+    }
+
+    return comment
+  }
+
+  async unlike(postId: string, commentId: string, user: AuthUser): Promise<CommentDocument> {
+    const comment = await this.commentModel.findOne({ _id: commentId, postId }).exec()
+
+    if (!comment) {
+      throw new NotFoundException('Comment not found')
+    }
+
+    if (comment.likes.includes(user.id)) {
+      comment.likes = comment.likes.filter((likeUserId) => likeUserId !== user.id)
+      await comment.save()
+    }
+
+    return comment
+  }
 }

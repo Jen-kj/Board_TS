@@ -11,6 +11,7 @@ type PostListItem = {
   createdAt: string
   thumbnailUrl?: string
   tags?: string[]
+  likesCount: number
 }
 
 interface PostListProps {
@@ -70,6 +71,10 @@ function PostList({ posts, loading = false, emptyState }: PostListProps): JSX.El
               <div className="mt-4 flex gap-6 text-xs uppercase tracking-[0.35em] text-[#4e6e8e]">
                 <span>{post.author}</span>
                 <span>{post.createdAt}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm font-medium text-[#e25555]">
+                <span aria-hidden="true">❤️</span>
+                <span className="text-[#36577a]">{post.likesCount}</span>
               </div>
             </div>
           </Link>
