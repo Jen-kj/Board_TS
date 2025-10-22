@@ -4,7 +4,7 @@
   align-items: center;
   justify-content: center;
   padding: 3rem 1.5rem;
-  background: linear-gradient(135deg, #f6f0ff 0%, #fde6ef 45%, #f9f9ff 100%);
+  background: linear-gradient(135deg, #fff1f2 0%, #fef2f2 45%, #fff1f2 100%);
 }
 
 .auth-card {
@@ -13,7 +13,7 @@
   min-height: 560px;
   border-radius: 36px;
   background: #ffffff;
-  box-shadow: 0 44px 90px -48px rgba(31, 47, 95, 0.42);
+  box-shadow: 0 44px 90px -48px rgba(244, 114, 182, 0.42);
   overflow: hidden;
   display: flex;
 }
@@ -29,12 +29,12 @@
 
 .form-pane {
   background: #ffffff;
-  color: #1f2f5f;
+  color: #be185d;
 }
 
 .overlay-pane {
-  background: linear-gradient(135deg, #1f2f5f 0%, #238fad 45%, #59c3c3 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, #f9a8d4 0%, #fbcfe8 45%, #fce7f3 100%);
+  color: #be185d;
   text-align: center;
 }
 
@@ -49,13 +49,13 @@
 .form-stack h2 {
   font-size: 2.45rem;
   font-weight: 800;
-  color: #173f7c;
+  color: #be185d;
   letter-spacing: -0.02em;
 }
 
 .form-stack p {
   font-size: 0.95rem;
-  color: #4e6e8e;
+  color: #f472b6;
   line-height: 1.7;
 }
 
@@ -69,7 +69,7 @@
   font-size: 0.68rem;
   letter-spacing: 0.35em;
   text-transform: uppercase;
-  color: #59a1c3;
+  color: #f9a8d4;
   font-weight: 600;
 }
 
@@ -77,18 +77,18 @@
   margin-top: 0.65rem;
   width: 100%;
   border-radius: 9999px;
-  border: 1px solid rgba(186, 215, 242, 0.92);
+  border: 1px solid rgba(251, 207, 232, 0.92);
   padding: 0.95rem 1.25rem;
   font-size: 0.96rem;
-  color: #1f2f5f;
+  color: #be185d;
   background: rgba(255, 255, 255, 0.98);
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .form-stack input:focus {
-  border-color: #59c3c3;
-  box-shadow: 0 0 0 4px rgba(89, 195, 195, 0.18);
+  border-color: #f472b6;
+  box-shadow: 0 0 0 4px rgba(244, 114, 182, 0.18);
 }
 
 .form-stack .error {
@@ -105,15 +105,15 @@
   text-transform: uppercase;
   font-weight: 700;
   border: none;
-  background: #59c3c3;
+  background: #f472b6;
   color: #ffffff;
   transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .primary-button:hover:not(:disabled) {
   transform: translateY(-1px);
-  background: #46b1b1;
-  box-shadow: 0 12px 24px -14px rgba(70, 177, 177, 0.52);
+  background: #f9a8d4;
+  box-shadow: 0 12px 24px -14px rgba(249, 168, 212, 0.52);
 }
 
 .primary-button:disabled {
@@ -129,9 +129,9 @@
   letter-spacing: 0.35em;
   text-transform: uppercase;
   font-weight: 600;
-  border: 1px solid rgba(89, 195, 195, 0.35);
-  background: linear-gradient(135deg, rgba(89, 195, 195, 0.18), rgba(89, 195, 195, 0.1));
-  color: #134f67;
+  border: 1px solid rgba(244, 114, 182, 0.35);
+  background: linear-gradient(135deg, rgba(244, 114, 182, 0.18), rgba(244, 114, 182, 0.1));
+  color: #be185d;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -141,9 +141,9 @@
 
 .google-button:hover:not(:disabled) {
   transform: translateY(-1px);
-  background: rgba(89, 195, 195, 0.24);
-  border-color: rgba(89, 195, 195, 0.42);
-  color: #0f455a;
+  background: rgba(244, 114, 182, 0.24);
+  border-color: rgba(244, 114, 182, 0.42);
+  color: #be185d;
 }
 
 .google-button:disabled {
@@ -153,7 +153,7 @@
 
 .helper-text {
   font-size: 0.73rem;
-  color: #7ea6cb;
+  color: #f9a8d4;
   line-height: 1.6;
 }
 
@@ -169,20 +169,20 @@
 .overlay-content h2 {
   font-size: 2.45rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #be185d;
 }
 
 .overlay-content p {
   font-size: 0.96rem;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.78);
+  color: #be185d;
 }
 
 .overlay-content button {
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.75);
+  border: 1px solid #be185d;
   background: transparent;
-  color: #ffffff;
+  color: #be185d;
   padding: 0.9rem 1.9rem;
   font-size: 0.72rem;
   letter-spacing: 0.35em;
@@ -192,8 +192,8 @@
 }
 
 .overlay-content button:hover {
-  background: #ffffff;
-  color: #1f2f5f;
+  background: #be185d;
+  color: #ffffff;
   transform: translateY(-1px);
 }
 

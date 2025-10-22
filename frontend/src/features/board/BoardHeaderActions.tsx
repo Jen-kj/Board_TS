@@ -56,10 +56,10 @@ function BoardHeaderActions({ onCompose, canCompose = false }: BoardHeaderAction
           type="button"
           onClick={onCompose}
           disabled={!canCompose || loading}
-          className={`rounded-full border border-[#bad7f2] px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition ${
+          className={`rounded-full border border-[#fbcfe8] px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition ${
             canCompose && !loading
-              ? 'bg-white text-[#1f2f5f] shadow-[0_12px_32px_-18px_rgba(31,47,95,0.2)] hover:bg-[#bad7f2] hover:text-white'
-              : 'cursor-not-allowed bg-white/70 text-[#bad7f2]/60 border-[#bad7f2]/40'
+              ? 'bg-white text-[#be185d] shadow-[0_12px_32px_-18px_rgba(190,24,93,0.2)] hover:bg-[#fbcfe8] hover:text-white'
+              : 'cursor-not-allowed bg-white/70 text-[#fbcfe8]/60 border-[#fbcfe8]/40'
           }`}
         >
           글 작성
@@ -70,14 +70,14 @@ function BoardHeaderActions({ onCompose, canCompose = false }: BoardHeaderAction
           {user.avatarUrl ? (
             <img src={user.avatarUrl} alt={displayName} className="h-10 w-10 rounded-full object-cover" />
           ) : (
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#bad7f2]/60 text-sm font-semibold text-[#1f2f5f]">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#fbcfe8]/60 text-sm font-semibold text-[#be185d]">
               {(displayName[0] ?? '?').toUpperCase()}
             </span>
           )}
         </button>
         {isMenuOpen && (
-          <div className="absolute right-0 mt-2 w-48 rounded-xl border border-[#bad7f2]/50 bg-white/95 p-2 text-sm text-[#1f2f5f] shadow-lg backdrop-blur-sm">
-            <Link to="/my-posts" className="block w-full rounded-lg px-4 py-2 text-left hover:bg-[#bad7f2]/40" onClick={() => setIsMenuOpen(false)}>내가 쓴 글</Link>
+          <div className="absolute right-0 mt-2 w-48 rounded-xl border border-[#fbcfe8]/50 bg-white/95 p-2 text-sm text-[#be185d] shadow-lg backdrop-blur-sm">
+            <Link to="/my-posts" className="block w-full rounded-lg px-4 py-2 text-left hover:bg-[#fbcfe8]/40" onClick={() => setIsMenuOpen(false)}>내가 쓴 글</Link>
             <button type="button" onClick={handleLogout} className="block w-full rounded-lg px-4 py-2 text-left text-red-600 hover:bg-red-100/80">로그아웃</button>
           </div>
         )}

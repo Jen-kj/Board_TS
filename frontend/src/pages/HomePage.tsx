@@ -169,8 +169,8 @@ function HomePage({
               disabled={loading}
               className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
                 sort === 'latest'
-                  ? 'border-[#1f2f5f] bg-[#1f2f5f] text-white'
-                  : 'border-transparent bg-white text-[#1f2f5f] hover:bg-gray-100'
+                  ? 'border-[#be185d] bg-[#be185d] text-white'
+                  : 'border-transparent bg-white text-[#be185d] hover:bg-gray-100'
               }`}
             >
               최신순
@@ -181,8 +181,8 @@ function HomePage({
               disabled={loading}
               className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
                 sort === 'popular'
-                  ? 'border-[#1f2f5f] bg-[#1f2f5f] text-white'
-                  : 'border-transparent bg-white text-[#1f2f5f] hover:bg-gray-100'
+                  ? 'border-[#be185d] bg-[#be185d] text-white'
+                  : 'border-transparent bg-white text-[#be185d] hover:bg-gray-100'
               }`}
             >
               인기순
@@ -193,7 +193,7 @@ function HomePage({
               type="button"
               onClick={handleClickWrite}
               disabled={loading}
-              className="rounded-full border border-[#bad7f2] px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-[#1f2f5f] transition shadow-[0_12px_32px_-18px_rgba(31,47,95,0.2)] hover:bg-[#bad7f2] hover:text-white"
+              className="rounded-full border border-[#fbcfe8] px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-[#be185d] transition shadow-[0_12px_32px_-18px_rgba(190,24,93,0.2)] hover:bg-[#fbcfe8] hover:text-white"
             >
               글 작성
             </button>
@@ -202,7 +202,7 @@ function HomePage({
       }
      >
       {!canWrite ? (
-        <p className="mb-8 rounded-[24px] border border-[#bad7f2]/60 bg-white/85 px-6 py-4 text-sm text-[#36577a] shadow-[0_24px_60px_-46px_rgba(31,47,95,0.15)]">
+        <p className="mb-8 rounded-[24px] border border-[#fbcfe8]/60 bg-white/85 px-6 py-4 text-sm text-[#f472b6] shadow-[0_24px_60px_-46px_rgba(190,24,93,0.15)]">
           공지 게시판은 운영자만 글을 작성할 수 있어요.
         </p>
       ) : null}
@@ -228,9 +228,9 @@ function HomePage({
           }))}
           emptyState={
             isSearching ? (
-              <div className="rounded-[32px] border border-dashed border-[#bad7f2]/55 bg-white/85 p-12 text-center text-[#36577a] shadow-[0_26px_60px_-38px_rgba(31,47,95,0.18)]">
+              <div className="rounded-[32px] border border-dashed border-[#fbcfe8]/55 bg-white/85 p-12 text-center text-[#f472b6] shadow-[0_26px_60px_-38px_rgba(190,24,93,0.18)]">
                 <p className="text-sm">
-                  <span className="font-semibold text-[#1f2f5f]">"{activeSearchTerm}"</span>에 해당하는 게시글이 없어요.
+                  <span className="font-semibold text-[#be185d]">"{activeSearchTerm}"</span>에 해당하는 게시글이 없어요.
                 </p>
                 <p className="mt-2 text-xs">검색어를 다시 입력하거나 초기화해 주세요.</p>
               </div>
@@ -240,26 +240,26 @@ function HomePage({
       )}
 
       <div className="mt-12 space-y-4">
-        {/* <div className="text-center text-sm text-[#4e6e8e]">
-          총 <span className="font-semibold text-[#1f2f5f]">{totalPosts}</span>개의 글 · {rangeStart === 0 ? 0 : rangeStart}–{rangeEnd} / {totalPosts} · 페이지 {page} / {totalPages} · 페이지당 {pageSize}개
+        {/* <div className="text-center text-sm text-[#f472b6]">
+          총 <span className="font-semibold text-[#be185d]">{totalPosts}</span>개의 글 · {rangeStart === 0 ? 0 : rangeStart}–{rangeEnd} / {totalPosts} · 페이지 {page} / {totalPages} · 페이지당 {pageSize}개
         </div> */}
         {totalPages > 1 ? (
-          <nav className="flex flex-wrap items-center justify-center gap-2 text-[#36577a]" aria-label="게시글 페이지네이션">
+          <nav className="flex flex-wrap items-center justify-center gap-2 text-[#f472b6]" aria-label="게시글 페이지네이션">
             <button
               type="button"
               onClick={() => onChangePage(page - 1)}
               disabled={page <= 1 || loading}
               className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition ${
                 page <= 1 || loading
-                  ? 'cursor-not-allowed border-[#bad7f2]/40 text-[#bad7f2]'
-                  : 'border-[#bad7f2] text-[#1f2f5f] hover:bg-[#bad7f2]/40'
+                  ? 'cursor-not-allowed border-[#fbcfe8]/40 text-[#fbcfe8]'
+                  : 'border-[#fbcfe8] text-[#be185d] hover:bg-[#fbcfe8]/40'
               }`}
             >
               이전
             </button>
             {paginationItems.map((item, index) =>
               item === 'ellipsis' ? (
-                <span key={`ellipsis-${index.toString()}`} className="px-2 text-sm text-[#7ea6cb]">
+                <span key={`ellipsis-${index.toString()}`} className="px-2 text-sm text-[#f9a8d4]">
                   …
                 </span>
               ) : (
@@ -270,8 +270,8 @@ function HomePage({
                   disabled={loading}
                   className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition ${
                     item === page
-                      ? 'border-[#1f2f5f] bg-[#1f2f5f] text-white'
-                      : 'border-[#bad7f2] text-[#1f2f5f] hover:bg-[#bad7f2]/40'
+                      ? 'border-[#be185d] bg-[#be185d] text-white'
+                      : 'border-[#fbcfe8] text-[#be185d] hover:bg-[#fbcfe8]/40'
                   } ${loading ? 'cursor-not-allowed' : ''}`}
                 >
                   {item}
@@ -284,8 +284,8 @@ function HomePage({
               disabled={page >= totalPages || loading}
               className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition ${
                 page >= totalPages || loading
-                  ? 'cursor-not-allowed border-[#bad7f2]/40 text-[#bad7f2]'
-                  : 'border-[#bad7f2] text-[#1f2f5f] hover:bg-[#bad7f2]/40'
+                  ? 'cursor-not-allowed border-[#fbcfe8]/40 text-[#fbcfe8]'
+                  : 'border-[#fbcfe8] text-[#be185d] hover:bg-[#fbcfe8]/40'
               }`}
             >
               다음

@@ -59,33 +59,33 @@ function BoardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#f3f6ff] text-[#1f2f5f]">
+    <div className="min-h-screen bg-[#fff1f2] text-[#be185d]">
       <div className="mx-auto max-w-6xl px-8 pb-16">
-        <header className="border-b border-[#bad7f2]/55 pb-10 pt-12">
+        <header className="border-b border-[#fbcfe8]/55 pb-10 pt-12">
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-6">
             <div className="flex justify-start">{actionSlot}</div>
-            <h1 className="text-4xl font-bold uppercase tracking-[0.4em] text-[#1f2f5f] text-center">{title}</h1>
+            <h1 className="text-4xl font-bold uppercase tracking-[0.4em] text-[#be185d] text-center">{title}</h1>
             <div className="flex justify-end">
               {onSearchChange && (
-                <form className="flex items-center gap-2 rounded-full border border-[#bad7f2]/60 bg-white/90 px-4 py-2 shadow-[0_12px_32px_-18px_rgba(31,47,95,0.2)]" onSubmit={handleSearchSubmit}>
+                <form className="flex items-center gap-2 rounded-full border border-[#fbcfe8]/60 bg-white/90 px-4 py-2 shadow-[0_12px_32px_-18px_rgba(190,24,93,0.2)]" onSubmit={handleSearchSubmit}>
                   <input
                     ref={searchInputRef}
                     type="search"
                     value={searchValue}
                     onChange={(e) => onSearchChange(e.target.value)}
                     placeholder={searchPlaceholder}
-                    className="w-40 rounded bg-transparent px-2 text-[10px] font-medium uppercase tracking-[0.3em] text-[#1f2f5f] outline-none placeholder:text-[#7ea6cb]"
+                    className="w-40 rounded bg-transparent px-2 text-[10px] font-medium uppercase tracking-[0.3em] text-[#be185d] outline-none placeholder:text-[#f9a8d4]"
                     disabled={searchDisabled}
                   />
-                  {isSearching ? <button type="button" onClick={() => { onResetSearch?.(); setIsSearchVisible(false); }} className="rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#7ea6cb] transition hover:text-[#1f2f5f]" disabled={searchDisabled}>Reset</button> : null}
-                  <button type="submit" className="rounded-full bg-[#bad7f2] px-3 py-1 text-[10px] font-semibold tracking-[0.3em] text-[#1f2f5f] transition hover:bg-[#a6cdef]" disabled={searchDisabled}>Search</button>
+                  {isSearching ? <button type="button" onClick={() => { onResetSearch?.(); setIsSearchVisible(false); }} className="rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#f9a8d4] transition hover:text-[#be185d]" disabled={searchDisabled}>Reset</button> : null}
+                  <button type="submit" className="rounded-full bg-[#fbcfe8] px-3 py-1 text-[10px] font-semibold tracking-[0.3em] text-[#be185d] transition hover:bg-[#f9a8d4]" disabled={searchDisabled}>Search</button>
                 </form>
               )}
             </div>
           </div>
-          <div className="mt-10 flex flex-wrap justify-center gap-5 border-t border-[#bad7f2]/60 pt-6 text-xs font-medium uppercase tracking-[0.35em] text-[#36577a]">
+          <div className="mt-10 flex flex-wrap justify-center gap-5 border-t border-[#fbcfe8]/60 pt-6 text-xs font-medium uppercase tracking-[0.35em] text-[#f472b6]">
             {categories.map((category) => (
-              <button key={category.id} type="button" onClick={() => onSelectCategory(category.id)} className={`pb-1 transition ${category.id === selectedCategoryId ? 'border-b-2 border-[#1f2f5f] text-[#1f2f5f]' : 'hover:text-[#1f2f5f]'}`}>{category.name}</button>
+              <button key={category.id} type="button" onClick={() => onSelectCategory(category.id)} className={`pb-1 transition ${category.id === selectedCategoryId ? 'border-b-2 border-[#be185d] text-[#be185d]' : 'hover:text-[#be185d]'}`}>{category.name}</button>
             ))}
           </div>
         </header>
