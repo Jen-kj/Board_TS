@@ -79,6 +79,38 @@ export async function fetchPosts(
   return data
 }
 
+export async function fetchMyPosts(
+  token: string,
+  search?: string,
+  page = 1,
+  limit = 6,
+  categoryId?: string,
+): Promise<PaginatedResponse<PostSummary>> {
+  const params = new URLSearchParams()
+  if (search && search.trim().length > 0) {
+    params.set('search', search.trim())
+  }
+  if (page !== undefined) {
+    params.set('page', String(page))
+  }
+  if (limit !== undefined) {
+    params.set('limit', String(limit))
+  }
+  if (categoryId && categoryId.trim().length > 0) {
+    params.set('categoryId', categoryId.trim())
+  }
+  const queryString = params.toString()
+
+  const response = await fetch(`${API_BASE_URL}/posts/me${queryString.length > 0 ? `?${queryString}` : ''}`, {
+    headers: authHeaders(token),
+  })
+  if (!response.ok) {
+    throw new Error(`Failed to fetch my posts: ${response.status}`)
+  }
+
+  return (await response.json()) as PaginatedResponse<PostSummary>
+}
+
 export async function fetchPost(id: string): Promise<PostSummary> {
   const response = await fetch(`${API_BASE_URL}/posts/${id}`)
   if (!response.ok) {

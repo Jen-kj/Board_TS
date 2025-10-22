@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import './App.css'
+import BoardLayout from './features/board/BoardLayout'
+import BoardHeaderActions from './features/board/BoardHeaderActions'
 import PostCompose, { PostDraftPayload } from './features/board/PostCompose'
 import HomePage, { BoardCategory, PostSummary } from './pages/HomePage'
 import PostDetailPage from './pages/PostDetailPage'
@@ -8,7 +10,7 @@ import PostEditPage from './pages/PostEditPage'
 import AuthPage from './pages/AuthPage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
 import AuthProfileSetupPage from './pages/AuthProfileSetupPage'
-import { createPost, deletePost, fetchPosts, updatePost } from './lib/api'
+import { createPost, deletePost, fetchMyPosts, fetchPosts, updatePost } from './lib/api'
 import { useAuth } from './features/auth/useAuth'
 
 const DEFAULT_PAGE_SIZE = 6
@@ -17,6 +19,7 @@ function App(): JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, token, loading: authLoading, setPendingRedirect, pendingRedirect } = useAuth()
+
   const categories = useMemo<BoardCategory[]>(
     () => [
       { id: 'notice', name: '공지사항', type: 'notice' },
@@ -27,6 +30,10 @@ function App(): JSX.Element {
   )
 
   const [posts, setPosts] = useState<PostSummary[]>([])
+  const [myPosts, setMyPosts] = useState<PostSummary[]>([])
+  const [myPostsTotalPages, setMyPostsTotalPages] = useState(1)
+  const [myPostsTotal, setMyPostsTotal] = useState(0)
+  const [myPostsCurrentPage, setMyPostsCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [composeTargetCategoryId, setComposeTargetCategoryId] = useState<string>('')
@@ -75,6 +82,35 @@ function App(): JSX.Element {
       }
     },
     [selectedCategoryId, currentPage, activeSearchTerm],
+  )
+
+  const loadMyPosts = useCallback(
+    async (options?: { search?: string; page?: number }): Promise<boolean> => {
+      if (!token) {
+        setError('내 게시글을 보려면 로그인이 필요해요.')
+        return false
+      }
+      const rawSearch = options?.search ?? ''
+      const nextPage = options?.page ?? 1
+
+      setIsLoading(true)
+      try {
+        const response = await fetchMyPosts(token, rawSearch, nextPage, DEFAULT_PAGE_SIZE)
+        setMyPosts(response.items.map((item) => ({ ...item, likes: item.likes ?? [] })))
+        setMyPostsTotalPages(response.totalPages)
+        setMyPostsTotal(response.total)
+        setMyPostsCurrentPage(response.page)
+        setError(null)
+        return true
+      } catch (err) {
+        console.error(err)
+        setError('내가 쓴 글을 불러오는 데 실패했어요.')
+        return false
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [token],
   )
 
   useEffect(() => {
@@ -309,6 +345,32 @@ function App(): JSX.Element {
   return (
     <Routes>
       <Route path="/auth" element={<AuthPage />} />
+      <Route
+        path="/my-posts"
+        element={
+          <HomePage
+            title="내가 쓴 글"
+            categories={[]}
+            posts={myPosts}
+            onRequestCompose={handleRequestCompose}
+            selectedCategoryId=""
+            onSelectCategory={() => {}}
+            searchValue={searchInput}
+            activeSearchTerm={activeSearchTerm}
+            onChangeSearch={handleSearchChange}
+            onSubmitSearch={() => loadMyPosts({ search: searchInput, page: 1 })}
+            onResetSearch={() => { setSearchInput(''); loadMyPosts({ search: '', page: 1 }); }}
+            isSearching={isSearching}
+            loading={combinedLoading}
+            error={error}
+            page={myPostsCurrentPage}
+            totalPages={myPostsTotalPages}
+            totalPosts={myPostsTotal}
+            pageSize={DEFAULT_PAGE_SIZE}
+            onChangePage={(page) => loadMyPosts({ page })}
+          />
+        }
+      />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route path="/auth/setup" element={<AuthProfileSetupPage />} />
       <Route

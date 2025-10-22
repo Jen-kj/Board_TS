@@ -70,6 +70,48 @@ export class PostsService {
     }
   }
 
+  async findAllByAuthor(
+    user: AuthUser,
+    params: {
+      search?: string
+      page?: number
+      limit?: number
+      categoryId?: string
+    },
+  ): Promise<{
+    items: PostDocument[]
+    total: number
+    page: number
+    limit: number
+    totalPages: number
+  }> {
+    const { search, page = 1, categoryId } = params
+    const filter: FilterQuery<PostDocument> = {
+      authorId: user.id,
+    }
+
+    if (search && search.trim().length > 0) {
+      const escaped = escapeRegex(search.trim())
+      const regex = new RegExp(escaped, 'i')
+      filter.$or = [{ title: { $regex: regex } }, { content: { $regex: regex } }]
+    }
+
+    if (categoryId && categoryId.trim().length > 0) {
+      filter.categoryId = categoryId.trim()
+    }
+
+    const pageNumber = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1
+    const perPage = 6 // ← 페이지당 항목 수 고정
+    const total = await this.postModel.countDocuments(filter).exec()
+    const totalPages = Math.max(1, Math.ceil(total / perPage))
+    const safePage = Math.max(1, Math.min(pageNumber, totalPages))
+    const skip = (safePage - 1) * perPage
+
+    const items = await this.postModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(perPage).exec()
+
+    return { items, total, page: safePage, limit: perPage, totalPages }
+  }
+
   async findOne(id: string): Promise<PostDocument> {
     const doc = await this.postModel.findById(id).exec()
     if (!doc) {
