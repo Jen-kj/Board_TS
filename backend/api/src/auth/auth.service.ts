@@ -14,6 +14,7 @@ interface GoogleUserInput {
   displayName: string
   providerId: string
   avatarUrl?: string
+  mode?: 'login' | 'register'
 }
 
 @Injectable()
@@ -47,11 +48,22 @@ export class AuthService {
     return { token, user: authUser }
   }
 
-  getFrontendCallbackUrl(token: string, state?: string | null): string {
+  getFrontendCallbackUrl(result: { token: string } | { error: string }, state?: string | null): string {
     const url = new URL('/auth/callback', this.frontendUrl)
-    url.searchParams.set('token', token)
+
+    if ('token' in result) {
+      url.searchParams.set('token', result.token)
+    } else {
+      url.searchParams.set('error', result.error)
+    }
+
     if (state) {
-      url.searchParams.set('state', state)
+      try {
+        const parsedState = JSON.parse(state)
+        url.searchParams.set('state', JSON.stringify(parsedState))
+      } catch {
+        url.searchParams.set('state', state)
+      }
     }
     return url.toString()
   }
@@ -62,6 +74,7 @@ export class AuthService {
       displayName: input.displayName,
       providerId: input.providerId,
       avatarUrl: input.avatarUrl,
+      mode: input.mode,
     })
 
     return this.toAuthUser(userDoc)
@@ -130,4 +143,3 @@ export class AuthService {
     return this.buildAuthResponse(updated)
   }
 }
-

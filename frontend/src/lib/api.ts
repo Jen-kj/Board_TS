@@ -391,5 +391,7 @@ export function buildGoogleAuthUrl(state?: string): string {
   if (state) {
     url.searchParams.set('state', state)
   }
+  // Google 로그인 시 항상 계정 선택 창이 표시되도록 prompt 파라미터를 추가합니다.
+  url.searchParams.set('prompt', 'select_account')
   return url.toString()
 }

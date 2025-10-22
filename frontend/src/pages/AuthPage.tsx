@@ -54,8 +54,12 @@ function AuthPage(): JSX.Element {
   }, [user, loading, nextPath, navigate, pendingRedirect])
 
   const handleGoogleSignIn = (): void => {
+    const authState = JSON.stringify({
+      next: nextPath,
+      mode: isRegisterMode ? 'register' : 'login',
+    })
     setPendingRedirect(nextPath)
-    const state = encodeURIComponent(nextPath)
+    const state = encodeURIComponent(authState)
     window.location.href = buildGoogleAuthUrl(state)
   }
 

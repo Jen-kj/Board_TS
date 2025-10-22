@@ -8,6 +8,7 @@ interface UpsertGoogleUserInput {
   displayName: string
   providerId: string
   avatarUrl?: string
+  mode?: 'login' | 'register'
 }
 
 interface CreateLocalUserInput {
@@ -55,11 +56,15 @@ export class UsersService {
       .findOne({ provider: 'google', providerId: input.providerId })
       .exec()
 
+    if (input.mode === 'register' && existing) {
+      throw new BadRequestException('이미 Google로 가입된 계정이에요. 로그인을 시도해 주세요.')
+    }
+
     if (existing) {
       existing.email = input.email
       existing.avatarUrl = input.avatarUrl
       existing.googleDisplayName = input.displayName
-      return existing.save()
+      return await existing.save()
     }
 
     const created = new this.userModel({

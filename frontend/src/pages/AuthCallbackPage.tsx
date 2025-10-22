@@ -12,24 +12,41 @@ function AuthCallbackPage(): JSX.Element {
 
   useEffect(() => {
     const token = searchParams.get('token')
+    const errorParam = searchParams.get('error')
     const stateParam = searchParams.get('state')
 
-    if (!token) {
+    if (errorParam) {
+      setError(errorParam)
+      return
+    }
+
+    if (!token && !errorParam) {
       setError('로그인 토큰을 받지 못했어요. 다시 시도해 주세요.')
       return
     }
 
-    const decodedState = stateParam ? decodeURIComponent(stateParam) : null
-    const nextTarget = decodedState && decodedState.startsWith('/') ? decodedState : pendingRedirect
-    const decodedNext = nextTarget && nextTarget.startsWith('/') ? nextTarget : '/'
-
-    loginWithToken(token)
+    let nextTarget = '/'
+    if (stateParam) {
+      try {
+        // state가 이중으로 인코딩되었을 수 있으므로 여러 번 디코딩 시도
+        const decodedState = decodeURIComponent(decodeURIComponent(stateParam))
+        const parsedState = JSON.parse(decodedState)
+        nextTarget = parsedState.next ?? '/'
+      } catch {
+        const decodedState = decodeURIComponent(stateParam)
+        nextTarget = decodedState.startsWith('/') ? decodedState : pendingRedirect ?? '/'
+      }
+    }
+    
+    if (token) {
+      loginWithToken(token)
       .then(() => {
-        navigate(decodedNext || '/', { replace: true })
+        navigate(nextTarget, { replace: true })
       })
       .catch(() => {
         setError('로그인 과정에서 오류가 발생했어요. 다시 시도해 주세요.')
       })
+    }
   }, [searchParams, loginWithToken, navigate, pendingRedirect])
 
   return (
