@@ -78,6 +78,7 @@ function BoardHeaderActions({ onCompose, canCompose = false }: BoardHeaderAction
         {isMenuOpen && (
           <div className="absolute right-0 mt-2 w-48 rounded-xl border border-[#fbcfe8]/50 bg-white/95 p-2 text-sm text-[#be185d] shadow-lg backdrop-blur-sm">
             <Link to="/my-posts" className="block w-full rounded-lg px-4 py-2 text-left hover:bg-[#fbcfe8]/40" onClick={() => setIsMenuOpen(false)}>내가 쓴 글</Link>
+            <Link to="/profile/edit" className="block w-full rounded-lg px-4 py-2 text-left hover:bg-[#fbcfe8]/40" onClick={() => setIsMenuOpen(false)}>프로필 수정</Link>
             <button type="button" onClick={handleLogout} className="block w-full rounded-lg px-4 py-2 text-left text-red-600 hover:bg-red-100/80">로그아웃</button>
           </div>
         )}
