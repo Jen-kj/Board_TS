@@ -776,8 +776,27 @@ function PostDetailPage({
     )
   }
 
-  const headerActions = (
-    <BoardHeaderActions onCompose={handleClickWrite} canCompose={canWrite} />
+  // const headerActions = (
+  //   <BoardHeaderActions onCompose={handleClickWrite} canCompose={canWrite} />
+  // )
+  // 헤더에는 프로필/메뉴만, 글작성 버튼은 카테고리 아래 슬롯으로 이동
+  const headerActions = <BoardHeaderActions canCompose={canWrite} />
+
+  // 카테고리 아래-줄(우측)에 들어갈 '글 작성' 버튼
+  const composeBelowTabs = (
+    <button
+      type="button"
+      onClick={handleClickWrite}
+      disabled={!canWrite}
+      className={
+        'rounded-full border px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition ' +
+        (!canWrite
+          ? 'cursor-not-allowed border-[#bad7f2]/40 text-[#bad7f2]/60 bg-white/70'
+          : 'border-[#bad7f2] text-[#1f2f5f] shadow-[0_12px_32px_-18px_rgba(31,47,95,0.2)] hover:bg-[#bad7f2] hover:text-white')
+      }
+    >
+      글 작성
+    </button>
   )
 
   const renderBody = (): JSX.Element => {
@@ -1031,6 +1050,7 @@ function PostDetailPage({
         searchPlaceholder="제목, 내용, 태그 검색"
         searchDisabled={searchDisabled}
         actionSlot={headerActions}
+        belowTabsActionSlot={composeBelowTabs}
       >
         <div className="flex min-h-[320px] items-center justify-center">
           <div className="rounded-[32px] border border-[#bad7f2]/55 bg-white/85 px-8 py-6 text-center text-sm font-medium tracking-[0.35em] text-[#36577a] shadow-[0_26px_60px_-38px_rgba(31,47,95,0.18)]">
@@ -1056,6 +1076,7 @@ function PostDetailPage({
         searchPlaceholder="제목, 내용, 태그 검색"
         searchDisabled={searchDisabled}
         actionSlot={headerActions}
+        belowTabsActionSlot={composeBelowTabs}
       >
         <div className="flex min-h-[320px] items-center justify-center">
           <div className="space-y-4 rounded-[32px] border border-[#bad7f2]/55 bg-white/85 px-10 py-8 text-center text-[#36577a] shadow-[0_26px_60px_-38px_rgba(31,47,95,0.18)]">
@@ -1086,6 +1107,7 @@ function PostDetailPage({
       searchPlaceholder="제목, 내용, 태그 검색"
       searchDisabled={searchDisabled}
       actionSlot={headerActions}
+      belowTabsActionSlot={composeBelowTabs}
     >
       <div className="mx-auto max-w-4xl space-y-8">
         {renderBody()}
