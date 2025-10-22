@@ -23,6 +23,7 @@ export class PostsService {
     limit?: number
     categoryId?: string
     sortBy?: 'latest' | 'popular'
+    authorId?: string
   }): Promise<{
     items: PostDocument[]
     total: number
@@ -30,7 +31,7 @@ export class PostsService {
     limit: number
     totalPages: number
   }> {
-    const { search, page = 1, categoryId, sortBy = 'latest' } = params
+    const { search, page = 1, categoryId, sortBy = 'latest', authorId } = params
     const filter: FilterQuery<PostDocument> = {}
 
     if (search && search.trim().length > 0) {
@@ -46,6 +47,10 @@ export class PostsService {
 
     if (categoryId && categoryId.trim().length > 0) {
       filter.categoryId = categoryId.trim()
+    }
+
+    if (authorId && authorId.trim().length > 0) {
+      filter.authorId = authorId.trim()
     }
 
     const pageNumber = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1
@@ -88,7 +93,7 @@ export class PostsService {
     limit: number
     totalPages: number
   }> {
-    const { search, page = 1, categoryId } = params
+    const { search, page = 1, categoryId, authorId } = params
     const filter: FilterQuery<PostDocument> = {
       authorId: user.id,
     }
