@@ -22,8 +22,21 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Get()
-  findAll(@Query('search') search?: string): Promise<PostDocument[]> {
-    return this.postsService.findAll(search)
+  findAll(
+    @Query('search') search?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('categoryId') categoryId?: string,
+  ): ReturnType<PostsService['findAll']> {
+    const parsedPage = page !== undefined ? Number.parseInt(page, 10) : undefined
+    const parsedLimit = limit !== undefined ? Number.parseInt(limit, 10) : undefined
+
+    return this.postsService.findAll({
+      search,
+      page: Number.isNaN(parsedPage) ? undefined : parsedPage,
+      limit: Number.isNaN(parsedLimit) ? undefined : parsedLimit,
+      categoryId,
+    })
   }
 
   @Get(':id')

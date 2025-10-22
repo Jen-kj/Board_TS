@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import BoardLayout from '../features/board/BoardLayout'
 import BoardHeaderActions from '../features/board/BoardHeaderActions'
 import PostList from '../features/posts/PostList'
@@ -29,6 +29,8 @@ interface HomePageProps {
   categories: BoardCategory[]
   posts: PostSummary[]
   onRequestCompose: (categoryId: string) => void
+  selectedCategoryId: string
+  onSelectCategory: (categoryId: string) => void
   searchValue: string
   activeSearchTerm: string
   onChangeSearch: (value: string) => void
@@ -37,6 +39,11 @@ interface HomePageProps {
   isSearching: boolean
   loading?: boolean
   error?: string | null
+  page: number
+  totalPages: number
+  totalPosts: number
+  pageSize: number
+  onChangePage: (page: number) => void
 }
 
 function HomePage({
@@ -44,6 +51,8 @@ function HomePage({
   categories,
   posts,
   onRequestCompose,
+  selectedCategoryId,
+  onSelectCategory,
   searchValue,
   activeSearchTerm,
   onChangeSearch,
@@ -52,28 +61,18 @@ function HomePage({
   isSearching,
   loading = false,
   error = null,
+  page,
+  totalPages,
+  totalPosts,
+  pageSize,
+  onChangePage,
 }: HomePageProps): JSX.Element {
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
-    categories[0]?.id ?? ''
-  )
   const selectedCategory = useMemo(
-    () => categories.find((category) => category.id === selectedCategoryId),
-    [categories, selectedCategoryId]
+    () => categories.find((category) => category.id === selectedCategoryId) ?? null,
+    [categories, selectedCategoryId],
   )
 
-  useEffect(() => {
-    if (!categories.some((category) => category.id === selectedCategoryId)) {
-      setSelectedCategoryId(categories[0]?.id ?? '')
-    }
-  }, [categories, selectedCategoryId])
-
-  const filteredPosts = useMemo(
-    () => posts.filter((post) => post.categoryId === selectedCategoryId),
-    [posts, selectedCategoryId]
-  )
-
-  const canWrite =
-    selectedCategory !== undefined ? selectedCategory.type === 'general' : false
+  const canWrite = selectedCategory?.type === 'general'
 
   const handleClickWrite = (): void => {
     if (!canWrite) {
@@ -83,12 +82,47 @@ function HomePage({
     onRequestCompose(selectedCategoryId)
   }
 
+  const rangeStart = totalPosts === 0 ? 0 : (page - 1) * pageSize + 1
+  const rangeEnd = totalPosts === 0 ? 0 : Math.min(page * pageSize, totalPosts)
+
+  const paginationItems = useMemo(() => {
+    if (totalPages <= 1) {
+      return [] as Array<number | 'ellipsis'>
+    }
+
+    const siblings = 1
+    const pages: Array<number | 'ellipsis'> = []
+
+    pages.push(1)
+
+    const start = Math.max(2, page - siblings)
+    const end = Math.min(totalPages - 1, page + siblings)
+
+    if (start > 2) {
+      pages.push('ellipsis')
+    }
+
+    for (let i = start; i <= end; i += 1) {
+      pages.push(i)
+    }
+
+    if (end < totalPages - 1) {
+      pages.push('ellipsis')
+    }
+
+    if (totalPages > 1) {
+      pages.push(totalPages)
+    }
+
+    return pages
+  }, [page, totalPages])
+
   return (
     <BoardLayout
       title={title}
       categories={categories.map(({ id, name }) => ({ id, name }))}
       selectedCategoryId={selectedCategoryId}
-      onSelectCategory={setSelectedCategoryId}
+      onSelectCategory={onSelectCategory}
       searchValue={searchValue}
       onSearchChange={onChangeSearch}
       onSearchSubmit={onSubmitSearch}
@@ -116,7 +150,7 @@ function HomePage({
       ) : (
         <PostList
           loading={loading}
-          posts={filteredPosts.map((post) => ({
+          posts={posts.map((post) => ({
             id: post.id,
             title: post.title,
             excerpt: post.excerpt,
@@ -140,6 +174,61 @@ function HomePage({
           }
         />
       )}
+
+      <div className="mt-12 space-y-4">
+        {/* <div className="text-center text-sm text-[#4e6e8e]">
+          총 <span className="font-semibold text-[#1f2f5f]">{totalPosts}</span>개의 글 · {rangeStart === 0 ? 0 : rangeStart}–{rangeEnd} / {totalPosts} · 페이지 {page} / {totalPages} · 페이지당 {pageSize}개
+        </div> */}
+        {totalPages > 1 ? (
+          <nav className="flex flex-wrap items-center justify-center gap-2 text-[#36577a]" aria-label="게시글 페이지네이션">
+            <button
+              type="button"
+              onClick={() => onChangePage(page - 1)}
+              disabled={page <= 1 || loading}
+              className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition ${
+                page <= 1 || loading
+                  ? 'cursor-not-allowed border-[#bad7f2]/40 text-[#bad7f2]'
+                  : 'border-[#bad7f2] text-[#1f2f5f] hover:bg-[#bad7f2]/40'
+              }`}
+            >
+              이전
+            </button>
+            {paginationItems.map((item, index) =>
+              item === 'ellipsis' ? (
+                <span key={`ellipsis-${index.toString()}`} className="px-2 text-sm text-[#7ea6cb]">
+                  …
+                </span>
+              ) : (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => onChangePage(item)}
+                  disabled={loading}
+                  className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition ${
+                    item === page
+                      ? 'border-[#1f2f5f] bg-[#1f2f5f] text-white'
+                      : 'border-[#bad7f2] text-[#1f2f5f] hover:bg-[#bad7f2]/40'
+                  } ${loading ? 'cursor-not-allowed' : ''}`}
+                >
+                  {item}
+                </button>
+              ),
+            )}
+            <button
+              type="button"
+              onClick={() => onChangePage(page + 1)}
+              disabled={page >= totalPages || loading}
+              className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition ${
+                page >= totalPages || loading
+                  ? 'cursor-not-allowed border-[#bad7f2]/40 text-[#bad7f2]'
+                  : 'border-[#bad7f2] text-[#1f2f5f] hover:bg-[#bad7f2]/40'
+              }`}
+            >
+              다음
+            </button>
+          </nav>
+        ) : null}
+      </div>
     </BoardLayout>
   )
 }

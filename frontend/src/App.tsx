@@ -11,6 +11,8 @@ import AuthProfileSetupPage from './pages/AuthProfileSetupPage'
 import { createPost, deletePost, fetchPosts, updatePost } from './lib/api'
 import { useAuth } from './features/auth/useAuth'
 
+const DEFAULT_PAGE_SIZE = 6
+
 function App(): JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
@@ -31,32 +33,55 @@ function App(): JSX.Element {
   const [searchInput, setSearchInput] = useState<string>('')
   const [activeSearchTerm, setActiveSearchTerm] = useState<string>('')
   const searchTermRef = useRef<string>('')
+  const initialLoadRef = useRef<boolean>(false)
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(categories[0]?.id ?? '')
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [totalPages, setTotalPages] = useState<number>(1)
+  const [totalPosts, setTotalPosts] = useState<number>(0)
 
-  const loadPosts = useCallback(async (search?: string): Promise<boolean> => {
-    const nextSearch = search ?? searchTermRef.current ?? ''
-    setIsLoading(true)
-    try {
-      const data = await fetchPosts(nextSearch)
-      setPosts(data.map((item) => ({ ...item, likes: item.likes ?? [] })))
-      setError(null)
-      if (search !== undefined) {
-        searchTermRef.current = nextSearch
-        setActiveSearchTerm(nextSearch)
-      } else if (searchTermRef.current !== activeSearchTerm) {
-        setActiveSearchTerm(searchTermRef.current)
+  const loadPosts = useCallback(
+    async (options?: { search?: string; page?: number; categoryId?: string }): Promise<boolean> => {
+      const rawSearch = options?.search ?? searchTermRef.current ?? ''
+      const nextSearch = rawSearch.trim()
+      const nextCategory = options?.categoryId ?? selectedCategoryId ?? ''
+      const shouldResetPage = options?.search !== undefined || options?.categoryId !== undefined
+      const fallbackPage = shouldResetPage ? 1 : currentPage
+      const requestedPage = options?.page ?? fallbackPage
+      const nextPage = requestedPage > 0 ? requestedPage : 1
+
+      setIsLoading(true)
+      try {
+        const response = await fetchPosts(nextSearch, nextPage, DEFAULT_PAGE_SIZE, nextCategory || undefined)
+        setPosts(response.items.map((item) => ({ ...item, likes: item.likes ?? [] })))
+        setTotalPages(response.totalPages)
+        setTotalPosts(response.total)
+        setCurrentPage(response.page)
+        setError(null)
+
+        if (options?.search !== undefined) {
+          searchTermRef.current = nextSearch
+          setActiveSearchTerm(nextSearch)
+        } else if (searchTermRef.current !== activeSearchTerm) {
+          setActiveSearchTerm(searchTermRef.current)
+        }
+
+        return true
+      } catch (err) {
+        console.error(err)
+        setError('게시글을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
+        return false
+      } finally {
+        setIsLoading(false)
       }
-      return true
-    } catch (err) {
-      console.error(err)
-      setError('게시글을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
-      return false
-    } finally {
-      setIsLoading(false)
-    }
-  }, [activeSearchTerm])
+    },
+    [selectedCategoryId, currentPage, activeSearchTerm],
+  )
 
   useEffect(() => {
-    void loadPosts('')
+    if (!initialLoadRef.current) {
+      initialLoadRef.current = true
+      void loadPosts({ search: '', page: 1 })
+    }
   }, [loadPosts])
 
   useEffect(() => {
@@ -152,7 +177,7 @@ function App(): JSX.Element {
     try {
       setIsLoading(true)
       const created = await createPost(draft, token)
-      const refreshed = await loadPosts()
+      const refreshed = await loadPosts({ page: 1 })
       if (!refreshed) {
         setError('게시글은 저장됐지만 목록을 다시 불러오지 못했어요. 잠시 후 새로고침해 주세요.')
       }
@@ -231,7 +256,7 @@ function App(): JSX.Element {
   const handleSearchSubmit = async (): Promise<void> => {
     const trimmed = searchInput.trim()
     setSearchInput(trimmed)
-    const refreshed = await loadPosts(trimmed)
+    const refreshed = await loadPosts({ search: trimmed, page: 1 })
     if (!refreshed) {
       setError('검색 결과를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
     }
@@ -242,8 +267,35 @@ function App(): JSX.Element {
       return
     }
     setSearchInput('')
-    void loadPosts('')
+    void loadPosts({ search: '', page: 1 })
   }
+
+  const handleSelectCategory = useCallback(
+    (categoryId: string): void => {
+      if (categoryId === selectedCategoryId) {
+        if (currentPage !== 1) {
+          setCurrentPage(1)
+          void loadPosts({ page: 1 })
+        }
+        return
+      }
+      setSelectedCategoryId(categoryId)
+      setCurrentPage(1)
+      void loadPosts({ categoryId, page: 1 })
+    },
+    [selectedCategoryId, currentPage, loadPosts],
+  )
+
+  const handleChangePage = useCallback(
+    (page: number): void => {
+      if (page === currentPage || page < 1 || page > totalPages) {
+        return
+      }
+      setCurrentPage(page)
+      void loadPosts({ page })
+    },
+    [currentPage, totalPages, loadPosts],
+  )
 
   const isSearching = activeSearchTerm.trim().length > 0
 
@@ -267,6 +319,8 @@ function App(): JSX.Element {
             categories={categories}
             posts={posts}
             onRequestCompose={handleRequestCompose}
+            selectedCategoryId={selectedCategoryId}
+            onSelectCategory={handleSelectCategory}
             searchValue={searchInput}
             activeSearchTerm={activeSearchTerm}
             onChangeSearch={handleSearchChange}
@@ -275,6 +329,11 @@ function App(): JSX.Element {
             isSearching={isSearching}
             loading={combinedLoading}
             error={error}
+            page={currentPage}
+            totalPages={totalPages}
+            totalPosts={totalPosts}
+            pageSize={DEFAULT_PAGE_SIZE}
+            onChangePage={handleChangePage}
           />
         }
       />

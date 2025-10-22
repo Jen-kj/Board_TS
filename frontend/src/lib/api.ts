@@ -27,6 +27,14 @@ export type AuthenticatedUser = {
   provider: AuthProvider
 }
 
+export type PaginatedResponse<T> = {
+  items: T[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ?? 'http://localhost:3000/api'
 
@@ -39,10 +47,24 @@ const authHeaders = (token: string): HeadersInit => ({
   Authorization: `Bearer ${token}`,
 })
 
-export async function fetchPosts(search?: string): Promise<PostSummary[]> {
+export async function fetchPosts(
+  search?: string,
+  page = 1,
+  limit = 6,
+  categoryId?: string,
+): Promise<PaginatedResponse<PostSummary>> {
   const params = new URLSearchParams()
   if (search && search.trim().length > 0) {
     params.set('search', search.trim())
+  }
+  if (page !== undefined) {
+    params.set('page', String(page))
+  }
+  if (limit !== undefined) {
+    params.set('limit', String(limit))
+  }
+  if (categoryId && categoryId.trim().length > 0) {
+    params.set('categoryId', categoryId.trim())
   }
   const queryString = params.toString()
 
@@ -53,7 +75,7 @@ export async function fetchPosts(search?: string): Promise<PostSummary[]> {
     throw new Error(`Failed to fetch posts: ${response.status}`)
   }
 
-  const data = (await response.json()) as PostSummary[]
+  const data = (await response.json()) as PaginatedResponse<PostSummary>
   return data
 }
 
