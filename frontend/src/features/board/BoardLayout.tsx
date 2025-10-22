@@ -6,6 +6,7 @@ interface BoardLayoutProps {
   selectedCategoryId: string
   onSelectCategory: (categoryId: string) => void
   actionSlot?: ReactNode
+  belowTabsActionSlot?: ReactNode                     // 글 작성              
   children: ReactNode
   searchValue?: string
   onSearchChange?: (value: string) => void
@@ -22,6 +23,7 @@ function BoardLayout({
   selectedCategoryId,
   onSelectCategory,
   actionSlot,
+  belowTabsActionSlot,
   children,
   searchValue = '',
   onSearchChange,
@@ -87,7 +89,13 @@ function BoardLayout({
             ))}
           </div>
         </header>
-        <main className="pt-16">{children}</main>
+        {belowTabsActionSlot ? (
+          <div className="mt-4 flex justify-end">
+            {belowTabsActionSlot}
+          </div>
+        ) : null}
+
+        <main className="pt-10">{children}</main>
       </div>
     </div>
   )

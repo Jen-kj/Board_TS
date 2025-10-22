@@ -130,13 +130,28 @@ function HomePage({
       isSearching={isSearching}
       searchPlaceholder="제목, 내용, 태그 검색"
       searchDisabled={loading}
-      actionSlot={
-        <BoardHeaderActions
-          onCompose={handleClickWrite}
-          canCompose={canWrite}
-        />
+      // actionSlot={
+      //   <BoardHeaderActions
+      //     onCompose={handleClickWrite}
+      //     canCompose={canWrite}
+      //   />
+      // }
+          /* 헤더(좌측)는 프로필만: 작성 버튼 제거 */
+      actionSlot={<BoardHeaderActions canCompose={canWrite} />}
+      /* ⬇️ 카테고리 아래-줄(우측)에만 작성 버튼 배치 */
+      belowTabsActionSlot={
+        canWrite ? (
+          <button
+            type="button"
+            onClick={handleClickWrite}
+            disabled={loading}
+            className="rounded-full border border-[#bad7f2] px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-[#1f2f5f] transition shadow-[0_12px_32px_-18px_rgba(31,47,95,0.2)] hover:bg-[#bad7f2] hover:text-white"
+          >
+            글 작성
+          </button>
+        ) : null
       }
-    >
+     >
       {!canWrite ? (
         <p className="mb-8 rounded-[24px] border border-[#bad7f2]/60 bg-white/85 px-6 py-4 text-sm text-[#36577a] shadow-[0_24px_60px_-46px_rgba(31,47,95,0.15)]">
           공지 게시판은 운영자만 글을 작성할 수 있어요.
