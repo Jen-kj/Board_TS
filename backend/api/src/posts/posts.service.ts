@@ -22,6 +22,7 @@ export class PostsService {
     page?: number
     limit?: number
     categoryId?: string
+    sortBy?: 'latest' | 'popular'
   }): Promise<{
     items: PostDocument[]
     total: number
@@ -29,7 +30,7 @@ export class PostsService {
     limit: number
     totalPages: number
   }> {
-    const { search, page = 1, categoryId } = params
+    const { search, page = 1, categoryId, sortBy = 'latest' } = params
     const filter: FilterQuery<PostDocument> = {}
 
     if (search && search.trim().length > 0) {
@@ -48,18 +49,19 @@ export class PostsService {
     }
 
     const pageNumber = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1
-    const perPage = 6  // ← 페이지당 항목 수 고정
+    const perPage = 6 // ← 페이지당 항목 수 고정
     const total = await this.postModel.countDocuments(filter).exec()
     const totalPages = Math.max(1, Math.ceil(total / perPage))
     const safePage = Math.max(1, Math.min(pageNumber, totalPages))
     const skip = (safePage - 1) * perPage
 
-    const items = await this.postModel
-      .find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(perPage)
-      .exec()
+    const sort: Record<string, 1 | -1> = {}
+    if (sortBy === 'popular') {
+      sort.likesCount = -1
+    }
+    sort.createdAt = -1
+
+    const items = await this.postModel.find(filter).sort(sort).skip(skip).limit(perPage).exec()
 
     return {
       items,
@@ -180,6 +182,7 @@ export class PostsService {
 
     if (!post.likes.includes(user.id)) {
       post.likes.push(user.id)
+      post.likesCount = post.likes.length
       await post.save()
     }
 
@@ -194,6 +197,7 @@ export class PostsService {
 
     if (post.likes.includes(user.id)) {
       post.likes = post.likes.filter((likeUserId) => likeUserId !== user.id)
+      post.likesCount = post.likes.length
       await post.save()
     }
 

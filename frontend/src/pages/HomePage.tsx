@@ -22,6 +22,7 @@ export type PostSummary = {
   tags?: string[]
   thumbnailUrl?: string
   likes: string[]
+  likesCount: number
 }
 
 interface HomePageProps {
@@ -44,6 +45,8 @@ interface HomePageProps {
   totalPosts: number
   pageSize: number
   onChangePage: (page: number) => void
+  sort: 'latest' | 'popular'
+  onSortChange: (sort: 'latest' | 'popular') => void
 }
 
 function HomePage({
@@ -66,6 +69,8 @@ function HomePage({
   totalPosts,
   pageSize,
   onChangePage,
+  sort,
+  onSortChange,
 }: HomePageProps): JSX.Element {
   const selectedCategory = useMemo(
     () => categories.find((category) => category.id === selectedCategoryId) ?? null,
@@ -140,16 +145,44 @@ function HomePage({
       actionSlot={<BoardHeaderActions canCompose={canWrite} />}
       /* ⬇️ 카테고리 아래-줄(우측)에만 작성 버튼 배치 */
       belowTabsActionSlot={
-        canWrite ? (
-          <button
-            type="button"
-            onClick={handleClickWrite}
-            disabled={loading}
-            className="rounded-full border border-[#bad7f2] px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-[#1f2f5f] transition shadow-[0_12px_32px_-18px_rgba(31,47,95,0.2)] hover:bg-[#bad7f2] hover:text-white"
-          >
-            글 작성
-          </button>
-        ) : null
+        <div className="flex w-full items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onSortChange('latest')}
+              disabled={loading}
+              className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
+                sort === 'latest'
+                  ? 'border-[#1f2f5f] bg-[#1f2f5f] text-white'
+                  : 'border-transparent bg-white text-[#1f2f5f] hover:bg-gray-100'
+              }`}
+            >
+              최신순
+            </button>
+            <button
+              type="button"
+              onClick={() => onSortChange('popular')}
+              disabled={loading}
+              className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] transition ${
+                sort === 'popular'
+                  ? 'border-[#1f2f5f] bg-[#1f2f5f] text-white'
+                  : 'border-transparent bg-white text-[#1f2f5f] hover:bg-gray-100'
+              }`}
+            >
+              인기순
+            </button>
+          </div>
+          {canWrite ? (
+            <button
+              type="button"
+              onClick={handleClickWrite}
+              disabled={loading}
+              className="rounded-full border border-[#bad7f2] px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-[#1f2f5f] transition shadow-[0_12px_32px_-18px_rgba(31,47,95,0.2)] hover:bg-[#bad7f2] hover:text-white"
+            >
+              글 작성
+            </button>
+          ) : null}
+        </div>
       }
      >
       {!canWrite ? (
@@ -175,7 +208,7 @@ function HomePage({
             createdAt: post.createdAt,
             tags: post.tags,
             thumbnailUrl: post.thumbnailUrl,
-            likesCount: post.likes?.length ?? 0,
+            likesCount: post.likesCount ?? 0,
           }))}
           emptyState={
             isSearching ? (

@@ -50,6 +50,9 @@ export class Post {
 
   @Prop({ type: [String], default: [] })
   likes!: string[]
+
+  @Prop({ type: Number, default: 0 })
+  likesCount!: number
 }
 
 export type PostDocument = HydratedDocument<Post>

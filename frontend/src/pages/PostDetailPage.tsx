@@ -314,7 +314,7 @@ function PostDetailPage({
       const updated = isLiked
         ? await unlikePost(post.id, authToken)
         : await likePost(post.id, authToken)
-      setPost({ ...updated, likes: updated.likes ?? [] })
+      setPost(updated)
       void onRefresh?.()
     } catch (err) {
       console.error(err)

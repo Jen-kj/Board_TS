@@ -27,6 +27,7 @@ export class PostsController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('categoryId') categoryId?: string,
+    @Query('sortBy') sortBy?: 'latest' | 'popular',
   ): ReturnType<PostsService['findAll']> {
     const parsedPage = page !== undefined ? Number.parseInt(page, 10) : undefined
     const parsedLimit = limit !== undefined ? Number.parseInt(limit, 10) : undefined
@@ -36,6 +37,7 @@ export class PostsController {
       page: Number.isNaN(parsedPage) ? undefined : parsedPage,
       limit: Number.isNaN(parsedLimit) ? undefined : parsedLimit,
       categoryId,
+      sortBy,
     })
   }
 

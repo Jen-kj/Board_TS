@@ -45,20 +45,28 @@ function App(): JSX.Element {
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [totalPages, setTotalPages] = useState<number>(1)
   const [totalPosts, setTotalPosts] = useState<number>(0)
+  const [sort, setSort] = useState<'latest' | 'popular'>('latest')
 
   const loadPosts = useCallback(
-    async (options?: { search?: string; page?: number; categoryId?: string }): Promise<boolean> => {
+    async (options?: {
+      search?: string
+      page?: number
+      categoryId?: string
+      sort?: 'latest' | 'popular'
+    }): Promise<boolean> => {
       const rawSearch = options?.search ?? searchTermRef.current ?? ''
       const nextSearch = rawSearch.trim()
       const nextCategory = options?.categoryId ?? selectedCategoryId ?? ''
-      const shouldResetPage = options?.search !== undefined || options?.categoryId !== undefined
+      const nextSort = options?.sort ?? sort
+      const shouldResetPage =
+        options?.search !== undefined || options?.categoryId !== undefined || options?.sort !== undefined
       const fallbackPage = shouldResetPage ? 1 : currentPage
       const requestedPage = options?.page ?? fallbackPage
       const nextPage = requestedPage > 0 ? requestedPage : 1
 
       setIsLoading(true)
       try {
-        const response = await fetchPosts(nextSearch, nextPage, DEFAULT_PAGE_SIZE, nextCategory || undefined)
+        const response = await fetchPosts(nextSearch, nextPage, DEFAULT_PAGE_SIZE, nextCategory || undefined, nextSort)
         setPosts(response.items.map((item) => ({ ...item, likes: item.likes ?? [] })))
         setTotalPages(response.totalPages)
         setTotalPosts(response.total)
@@ -81,7 +89,7 @@ function App(): JSX.Element {
         setIsLoading(false)
       }
     },
-    [selectedCategoryId, currentPage, activeSearchTerm],
+    [selectedCategoryId, currentPage, activeSearchTerm, sort],
   )
 
   const loadMyPosts = useCallback(
@@ -333,6 +341,17 @@ function App(): JSX.Element {
     [currentPage, totalPages, loadPosts],
   )
 
+  const handleSortChange = useCallback(
+    (newSort: 'latest' | 'popular') => {
+      if (newSort === sort) {
+        return
+      }
+      setSort(newSort)
+      void loadPosts({ page: 1, sort: newSort })
+    },
+    [sort, loadPosts],
+  )
+
   const isSearching = activeSearchTerm.trim().length > 0
 
   const generalCategories = useMemo(
@@ -396,6 +415,8 @@ function App(): JSX.Element {
             totalPosts={totalPosts}
             pageSize={DEFAULT_PAGE_SIZE}
             onChangePage={handleChangePage}
+            sort={sort}
+            onSortChange={handleSortChange}
           />
         }
       />

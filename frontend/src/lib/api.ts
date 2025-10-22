@@ -52,6 +52,7 @@ export async function fetchPosts(
   page = 1,
   limit = 6,
   categoryId?: string,
+  sortBy?: 'latest' | 'popular',
 ): Promise<PaginatedResponse<PostSummary>> {
   const params = new URLSearchParams()
   if (search && search.trim().length > 0) {
@@ -65,6 +66,9 @@ export async function fetchPosts(
   }
   if (categoryId && categoryId.trim().length > 0) {
     params.set('categoryId', categoryId.trim())
+  }
+  if (sortBy) {
+    params.set('sortBy', sortBy)
   }
   const queryString = params.toString()
 
