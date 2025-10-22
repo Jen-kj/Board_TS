@@ -49,6 +49,22 @@ interface HomePageProps {
   onSortChange: (sort: 'latest' | 'popular') => void
 }
 
+function formatDateOnly(value: string): string {
+  const m = /^(\d{4}-\d{2}-\d{2})/.exec(value)
+  if (m) return m[1]
+  try {
+    const d = new Date(value)
+    if (!isNaN(d.getTime())) {
+      const y = d.getFullYear()
+      const mo = String(d.getMonth() + 1).padStart(2, '0')
+      const da = String(d.getDate()).padStart(2, '0')
+      return `${y}-${mo}-${da}`
+    }
+  } catch {}
+  return value
+}
+
+
 function HomePage({
   title,
   categories,
@@ -205,7 +221,7 @@ function HomePage({
             author: post.author,
             authorId: post.authorId,
             authorAvatarUrl: post.authorAvatarUrl,
-            createdAt: post.createdAt,
+            createdAt: formatDateOnly(post.createdAt),  // ← 날짜만 전달
             tags: post.tags,
             thumbnailUrl: post.thumbnailUrl,
             likesCount: post.likesCount ?? 0,
