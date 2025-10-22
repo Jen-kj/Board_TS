@@ -70,25 +70,33 @@ function PostDetailPage({
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
-    post?.categoryId ?? categories[0]?.id ?? '',
+    post?.categoryId ?? categories[0]?.id ?? ''
   )
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [comments, setComments] = useState<PostComment[]>([])
   const [commentsLoading, setCommentsLoading] = useState<boolean>(true)
   const [commentsError, setCommentsError] = useState<string | null>(null)
   const [commentInput, setCommentInput] = useState<string>('')
-  const [commentSubmitError, setCommentSubmitError] = useState<string | null>(null)
+  const [commentSubmitError, setCommentSubmitError] = useState<string | null>(
+    null
+  )
   const [isSubmittingComment, setIsSubmittingComment] = useState<boolean>(false)
-  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null)
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
+    null
+  )
   const [replyTargetId, setReplyTargetId] = useState<string | null>(null)
   const [replyInput, setReplyInput] = useState<string>('')
   const [isSubmittingReply, setIsSubmittingReply] = useState<boolean>(false)
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
   const [editingInput, setEditingInput] = useState<string>('')
   const [isUpdatingComment, setIsUpdatingComment] = useState<boolean>(false)
-  const [commentActionError, setCommentActionError] = useState<string | null>(null)
+  const [commentActionError, setCommentActionError] = useState<string | null>(
+    null
+  )
   const [isTogglingPostLike, setIsTogglingPostLike] = useState<boolean>(false)
-  const [togglingCommentLikeId, setTogglingCommentLikeId] = useState<string | null>(null)
+  const [togglingCommentLikeId, setTogglingCommentLikeId] = useState<
+    string | null
+  >(null)
 
   useEffect(() => {
     if (!postId) {
@@ -121,7 +129,9 @@ function PostDetailPage({
         if (!isMounted) {
           return
         }
-        setError('게시글을 불러오는 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
+        setError(
+          '게시글을 불러오는 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.'
+        )
       })
       .finally(() => {
         if (!isMounted) {
@@ -133,7 +143,7 @@ function PostDetailPage({
     return () => {
       isMounted = false
     }
-  }, [postId, postCache, onRefresh])
+  }, [postId])
 
   const loadComments = useCallback(async () => {
     if (!postId) {
@@ -203,11 +213,12 @@ function PostDetailPage({
 
   const selectedCategory = useMemo(
     () => categories.find((item) => item.id === selectedCategoryId) ?? null,
-    [categories, selectedCategoryId],
+    [categories, selectedCategoryId]
   )
 
   const canWrite = selectedCategory?.type === 'general'
-  const canEditPost = post !== null && currentUser !== null && post.authorId === currentUser.id
+  const canEditPost =
+    post !== null && currentUser !== null && post.authorId === currentUser.id
 
   const { topLevelComments, repliesByParent } = useMemo(() => {
     const topLevel: PostComment[] = []
@@ -261,7 +272,9 @@ function PostDetailPage({
       return
     }
 
-    const confirmed = window.confirm('정말로 이 게시글을 삭제할까요? 되돌릴 수 없어요.')
+    const confirmed = window.confirm(
+      '정말로 이 게시글을 삭제할까요? 되돌릴 수 없어요.'
+    )
     if (!confirmed) {
       return
     }
@@ -305,13 +318,17 @@ function PostDetailPage({
       void onRefresh?.()
     } catch (err) {
       console.error(err)
-      setCommentActionError('좋아요 처리 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
+      setCommentActionError(
+        '좋아요 처리 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.'
+      )
     } finally {
       setIsTogglingPostLike(false)
     }
   }
 
-  const handleSubmitComment = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmitComment = async (
+    event: FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     event.preventDefault()
     if (!postId) {
       return
@@ -334,11 +351,16 @@ function PostDetailPage({
 
     try {
       const created = await createComment(postId, trimmed, authToken)
-      setComments((prev) => [...prev, { ...created, likes: created.likes ?? [] }])
+      setComments((prev) => [
+        ...prev,
+        { ...created, likes: created.likes ?? [] },
+      ])
       setCommentInput('')
     } catch (err) {
       console.error(err)
-      setCommentSubmitError('댓글 등록 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
+      setCommentSubmitError(
+        '댓글 등록 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.'
+      )
     } finally {
       setIsSubmittingComment(false)
     }
@@ -367,7 +389,7 @@ function PostDetailPage({
 
   const handleSubmitReply = async (
     event: FormEvent<HTMLFormElement>,
-    parentCommentId: string,
+    parentCommentId: string
   ): Promise<void> => {
     event.preventDefault()
     if (!postId) {
@@ -393,13 +415,23 @@ function PostDetailPage({
     setIsSubmittingReply(true)
 
     try {
-      const created = await createComment(postId, trimmed, authToken, parentCommentId)
-      setComments((prev) => [...prev, { ...created, likes: created.likes ?? [] }])
+      const created = await createComment(
+        postId,
+        trimmed,
+        authToken,
+        parentCommentId
+      )
+      setComments((prev) => [
+        ...prev,
+        { ...created, likes: created.likes ?? [] },
+      ])
       setReplyTargetId(null)
       setReplyInput('')
     } catch (err) {
       console.error(err)
-      setCommentActionError('댓글 등록 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
+      setCommentActionError(
+        '댓글 등록 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.'
+      )
     } finally {
       setIsSubmittingReply(false)
     }
@@ -430,7 +462,7 @@ function PostDetailPage({
 
   const handleSubmitEdit = async (
     event: FormEvent<HTMLFormElement>,
-    commentId: string,
+    commentId: string
   ): Promise<void> => {
     event.preventDefault()
     if (!postId) {
@@ -456,21 +488,29 @@ function PostDetailPage({
       setComments((prev) =>
         prev.map((comment) =>
           comment.id === commentId
-            ? { ...comment, content: updated.content, updatedAt: updated.updatedAt }
-            : comment,
-        ),
+            ? {
+                ...comment,
+                content: updated.content,
+                updatedAt: updated.updatedAt,
+              }
+            : comment
+        )
       )
       setEditingCommentId(null)
       setEditingInput('')
     } catch (err) {
       console.error(err)
-      setCommentActionError('댓글 수정 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
+      setCommentActionError(
+        '댓글 수정 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.'
+      )
     } finally {
       setIsUpdatingComment(false)
     }
   }
 
-  const handleToggleCommentLike = async (comment: PostComment): Promise<void> => {
+  const handleToggleCommentLike = async (
+    comment: PostComment
+  ): Promise<void> => {
     if (!postId) {
       return
     }
@@ -495,12 +535,16 @@ function PostDetailPage({
         : await likeComment(postId, comment.id, authToken)
       setComments((prev) =>
         prev.map((item) =>
-          item.id === comment.id ? { ...item, likes: updated.likes ?? [] } : item,
-        ),
+          item.id === comment.id
+            ? { ...item, likes: updated.likes ?? [] }
+            : item
+        )
       )
     } catch (err) {
       console.error(err)
-      setCommentActionError('좋아요 처리 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
+      setCommentActionError(
+        '좋아요 처리 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.'
+      )
     } finally {
       setTogglingCommentLikeId(null)
     }
@@ -545,7 +589,9 @@ function PostDetailPage({
         }
       }
 
-      setComments((prev) => prev.filter((comment) => !idsToRemove.has(comment.id)))
+      setComments((prev) =>
+        prev.filter((comment) => !idsToRemove.has(comment.id))
+      )
 
       if (togglingCommentLikeId && idsToRemove.has(togglingCommentLikeId)) {
         setTogglingCommentLikeId(null)
@@ -562,7 +608,9 @@ function PostDetailPage({
       }
     } catch (err) {
       console.error(err)
-      setCommentActionError('댓글 삭제 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
+      setCommentActionError(
+        '댓글 삭제 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.'
+      )
     } finally {
       setDeletingCommentId(null)
     }
@@ -577,13 +625,18 @@ function PostDetailPage({
     const isReplyingHere = replyTargetId === comment.id
     const createdText = formatCommentDate(comment.createdAt)
     const isEdited =
-      comment.updatedAt !== undefined && comment.updatedAt !== null && comment.updatedAt !== comment.createdAt
+      comment.updatedAt !== undefined &&
+      comment.updatedAt !== null &&
+      comment.updatedAt !== comment.createdAt
     const commentLikesCount = comment.likes?.length ?? 0
-    const isCommentLiked = currentUser ? comment.likes.includes(currentUser.id) : false
+    const isCommentLiked = currentUser
+      ? comment.likes.includes(currentUser.id)
+      : false
     const isCommentLikePending = togglingCommentLikeId === comment.id
-    const containerClass = depth > 0
-      ? 'rounded-[20px] border border-[#bad7f2]/45 bg-white/80 px-5 py-4 shadow-[0_12px_28px_-24px_rgba(31,47,95,0.18)]'
-      : 'rounded-[24px] border border-[#bad7f2]/55 bg-white/85 px-6 py-5 shadow-[0_22px_40px_-36px_rgba(31,47,95,0.2)]'
+    const containerClass =
+      depth > 0
+        ? 'rounded-[20px] border border-[#bad7f2]/45 bg-white/80 px-5 py-4 shadow-[0_12px_28px_-24px_rgba(31,47,95,0.18)]'
+        : 'rounded-[24px] border border-[#bad7f2]/55 bg-white/85 px-6 py-5 shadow-[0_22px_40px_-36px_rgba(31,47,95,0.2)]'
 
     return (
       <li key={comment.id} className={containerClass}>
@@ -604,7 +657,11 @@ function PostDetailPage({
           </span>
           <span className="flex items-center gap-2">
             <span>{createdText}</span>
-            {isEdited ? <span className="text-[10px] lowercase text-[#7ea6cb]">(수정됨)</span> : null}
+            {isEdited ? (
+              <span className="text-[10px] lowercase text-[#7ea6cb]">
+                (수정됨)
+              </span>
+            ) : null}
           </span>
         </div>
 
@@ -668,13 +725,15 @@ function PostDetailPage({
                   isCommentLikePending
                     ? 'cursor-not-allowed border-[#bad7f2]/60 bg-[#bad7f2]/30 text-[#7ea6cb]'
                     : isCommentLiked
-                        ? 'border-[#e25555]/50 bg-[#ffe2e8] text-[#e25555]'
-                        : 'border-[#bad7f2]/60 text-[#e25555] hover:bg-[#bad7f2]/30'
+                    ? 'border-[#e25555]/50 bg-[#ffe2e8] text-[#e25555]'
+                    : 'border-[#bad7f2]/60 text-[#e25555] hover:bg-[#bad7f2]/30'
                 }`}
               >
                 ❤️
               </button>
-              <span className="text-[11px] font-semibold tracking-[0.2em] text-[#36577a]">{commentLikesCount}</span>
+              <span className="text-[11px] font-semibold tracking-[0.2em] text-[#36577a]">
+                {commentLikesCount}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               {isAuthor ? (
@@ -823,7 +882,9 @@ function PostDetailPage({
     }
 
     const postLikesCount = post.likes?.length ?? 0
-    const postLikedByUser = currentUser ? post.likes.includes(currentUser.id) : false
+    const postLikedByUser = currentUser
+      ? post.likes.includes(currentUser.id)
+      : false
     return (
       <div className="space-y-8">
         <article className="rounded-[32px] border border-[#bad7f2]/60 bg-white/90 p-10 shadow-[0_24px_60px_-40px_rgba(31,47,95,0.22)]">
@@ -863,7 +924,9 @@ function PostDetailPage({
           <div className="mt-6 text-xs font-semibold uppercase tracking-[0.35em] text-[#36577a]">
             {category?.name ?? '기타'}
           </div>
-          <h1 className="mt-4 text-3xl font-bold leading-tight text-[#1f2f5f]">{post.title}</h1>
+          <h1 className="mt-4 text-3xl font-bold leading-tight text-[#1f2f5f]">
+            {post.title}
+          </h1>
           <div className="mt-6 flex flex-wrap gap-6 text-xs uppercase tracking-[0.35em] text-[#4e6e8e]">
             <span className="flex items-center gap-3">
               {post.authorAvatarUrl ? (
@@ -895,7 +958,7 @@ function PostDetailPage({
             </ul>
           ) : null}
 
-          <div className="mt-8 flex items-center gap-3">
+          {/* <div className="mt-8 flex items-center gap-3">
             <button
               type="button"
               onClick={() => {
@@ -920,7 +983,35 @@ function PostDetailPage({
           <div
             className="prose prose-slate mt-10 max-w-none text-[#36577a]"
             dangerouslySetInnerHTML={{ __html: post.content }}
+          /> */}
+          <div
+            className="prose prose-slate mt-10 max-w-none text-[#36577a]"
+            dangerouslySetInnerHTML={{ __html: post.content }}
           />
+
+          <div className="mt-10 border-t border-[#bad7f2]/40 pt-6 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                void handleTogglePostLike()
+              }}
+              disabled={isTogglingPostLike}
+              aria-label={postLikedByUser ? '좋아요 취소' : '좋아요'}
+              title={postLikedByUser ? '좋아요 취소' : '좋아요'}
+              className={`flex items-center justify-center rounded-full border px-4 py-2 text-lg transition ${
+                isTogglingPostLike
+                  ? 'cursor-not-allowed border-[#bad7f2]/60 bg-[#bad7f2]/30 text-[#7ea6cb]'
+                  : postLikedByUser
+                  ? 'border-[#e25555]/50 bg-[#ffe2e8] text-[#e25555]'
+                  : 'border-[#bad7f2]/60 text-[#e25555] hover:bg-[#bad7f2]/30'
+              }`}
+            >
+              ❤️
+            </button>
+            <span className="text-sm font-semibold text-[#36577a]">
+              {postLikesCount}
+            </span>
+          </div>
         </article>
 
         <section className="rounded-[32px] border border-[#bad7f2]/60 bg-white/90 p-8 shadow-[0_24px_60px_-40px_rgba(31,47,95,0.18)]">
@@ -1107,11 +1198,8 @@ function PostDetailPage({
       searchPlaceholder="제목, 내용, 태그 검색"
       searchDisabled={searchDisabled}
       actionSlot={headerActions}
-      belowTabsActionSlot={composeBelowTabs}
     >
-      <div className="mx-auto max-w-4xl space-y-8">
-        {renderBody()}
-      </div>
+      <div className="mx-auto max-w-4xl space-y-8">{renderBody()}</div>
     </BoardLayout>
   )
 }
