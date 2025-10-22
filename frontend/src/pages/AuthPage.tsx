@@ -54,12 +54,12 @@ function AuthPage(): JSX.Element {
   }, [user, loading, nextPath, navigate, pendingRedirect])
 
   const handleGoogleSignIn = (): void => {
-    const authState = JSON.stringify({
+    const authState = {
       next: nextPath,
       mode: isRegisterMode ? 'register' : 'login',
-    })
+    }
     setPendingRedirect(nextPath)
-    const state = encodeURIComponent(authState)
+    const state = encodeURIComponent(JSON.stringify(authState))
     window.location.href = buildGoogleAuthUrl(state)
   }
 
@@ -253,7 +253,7 @@ function AuthPage(): JSX.Element {
   return (
     <div className="auth-page-root">
       <div className="auth-card">
-        <div className={`auth-pane ${isRegisterMode ? 'overlay-pane' : 'form-pane'}`}>
+        <div className={`auth-pane ${isRegisterMode ? '' : 'form-pane'}`}>
           {isRegisterMode
             ? renderOverlay({
                 title: '다시 만나서 반가워요!',
