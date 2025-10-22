@@ -10,6 +10,7 @@ export type PostComment = {
   authorAvatarUrl?: string | null
   createdAt: string
   updatedAt?: string
+  parentId?: string | null
 }
 
 export type AuthProvider = 'google' | 'local'
@@ -172,11 +173,12 @@ export async function createComment(
   postId: string,
   content: string,
   token: string,
+  parentId?: string,
 ): Promise<PostComment> {
   const response = await fetch(`${API_BASE_URL}/posts/${postId}/comments`, {
     method: 'POST',
     headers: authHeaders(token),
-    body: JSON.stringify({ content }),
+    body: JSON.stringify({ content, parentId }),
   })
 
   if (!response.ok) {
@@ -195,6 +197,25 @@ export async function deleteComment(postId: string, commentId: string, token: st
   if (!response.ok) {
     throw new Error(await extractErrorMessage(response))
   }
+}
+
+export async function updateComment(
+  postId: string,
+  commentId: string,
+  content: string,
+  token: string,
+): Promise<PostComment> {
+  const response = await fetch(`${API_BASE_URL}/posts/${postId}/comments/${commentId}`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify({ content }),
+  })
+
+  if (!response.ok) {
+    throw new Error(await extractErrorMessage(response))
+  }
+
+  return (await response.json()) as PostComment
 }
 
 type AuthResponse = {

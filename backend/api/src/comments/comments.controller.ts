@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import type { AuthUser } from '../auth/interfaces/auth-user.interface'
 import { CommentsService } from './comments.service'
 import { CreateCommentDto } from './dto/create-comment.dto'
+import { UpdateCommentDto } from './dto/update-comment.dto'
 import type { CommentDocument } from './schemas/comment.schema'
 
 @Controller('posts/:postId/comments')
@@ -23,6 +24,17 @@ export class CommentsController {
     @Body() payload: CreateCommentDto,
   ): Promise<CommentDocument> {
     return this.commentsService.create(postId, user, payload)
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':commentId')
+  update(
+    @Param('postId') postId: string,
+    @Param('commentId') commentId: string,
+    @CurrentUser() user: AuthUser,
+    @Body() payload: UpdateCommentDto,
+  ): Promise<CommentDocument> {
+    return this.commentsService.update(postId, commentId, user, payload)
   }
 
   @UseGuards(JwtAuthGuard)

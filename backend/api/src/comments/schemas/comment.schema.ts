@@ -33,6 +33,9 @@ export class Comment {
   @Prop()
   authorAvatarUrl?: string
 
+  @Prop({ default: null })
+  parentId?: string | null
+
   @Prop({ required: true })
   content!: string
 }

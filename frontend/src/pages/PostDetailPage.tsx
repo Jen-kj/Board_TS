@@ -4,7 +4,7 @@ import BoardLayout from '../features/board/BoardLayout'
 import BoardHeaderActions from '../features/board/BoardHeaderActions'
 import type { BoardCategory, PostSummary } from './HomePage'
 import type { AuthenticatedUser, PostComment } from '../lib/api'
-import { createComment, deleteComment, fetchComments, fetchPost } from '../lib/api'
+import { createComment, deleteComment, fetchComments, fetchPost, updateComment } from '../lib/api'
 
 function formatCommentDate(value: string): string {
   try {
@@ -70,6 +70,13 @@ function PostDetailPage({
   const [commentSubmitError, setCommentSubmitError] = useState<string | null>(null)
   const [isSubmittingComment, setIsSubmittingComment] = useState<boolean>(false)
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null)
+  const [replyTargetId, setReplyTargetId] = useState<string | null>(null)
+  const [replyInput, setReplyInput] = useState<string>('')
+  const [isSubmittingReply, setIsSubmittingReply] = useState<boolean>(false)
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
+  const [editingInput, setEditingInput] = useState<string>('')
+  const [isUpdatingComment, setIsUpdatingComment] = useState<boolean>(false)
+  const [commentActionError, setCommentActionError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!postId) {
@@ -129,6 +136,14 @@ function PostDetailPage({
       const data = await fetchComments(postId)
       setComments(data)
       setCommentsError(null)
+      setReplyTargetId(null)
+      setReplyInput('')
+      setEditingCommentId(null)
+      setEditingInput('')
+      setCommentActionError(null)
+      setDeletingCommentId(null)
+      setIsSubmittingReply(false)
+      setIsUpdatingComment(false)
     } catch (err) {
       console.error(err)
       setCommentsError('댓글을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.')
@@ -180,6 +195,35 @@ function PostDetailPage({
 
   const canWrite = selectedCategory?.type === 'general'
   const canEditPost = post !== null && currentUser !== null && post.authorId === currentUser.id
+
+  const { topLevelComments, repliesByParent } = useMemo(() => {
+    const topLevel: PostComment[] = []
+    const replies = new Map<string, PostComment[]>()
+
+    const sortByCreatedAt = (a: PostComment, b: PostComment) => {
+      const aTime = new Date(a.createdAt).getTime()
+      const bTime = new Date(b.createdAt).getTime()
+      return aTime - bTime
+    }
+
+    comments.forEach((comment) => {
+      if (comment.parentId) {
+        const parentReplies = replies.get(comment.parentId) ?? []
+        parentReplies.push(comment)
+        replies.set(comment.parentId, parentReplies)
+      } else {
+        topLevel.push(comment)
+      }
+    })
+
+    topLevel.sort(sortByCreatedAt)
+    replies.forEach((list, key) => {
+      list.sort(sortByCreatedAt)
+      replies.set(key, list)
+    })
+
+    return { topLevelComments: topLevel, repliesByParent: replies }
+  }, [comments])
 
   const handleSelectCategory = (categoryId: string): void => {
     setSelectedCategoryId(categoryId)
@@ -239,6 +283,7 @@ function PostDetailPage({
     }
 
     setCommentSubmitError(null)
+    setCommentActionError(null)
     setIsSubmittingComment(true)
 
     try {
@@ -250,6 +295,132 @@ function PostDetailPage({
       setCommentSubmitError('댓글 등록 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
     } finally {
       setIsSubmittingComment(false)
+    }
+  }
+
+  const handleStartReply = (commentId: string): void => {
+    if (!postId) {
+      return
+    }
+    if (!authToken) {
+      onRequireAuth(`/posts/${postId}`)
+      return
+    }
+    setReplyTargetId(commentId)
+    setReplyInput('')
+    setCommentSubmitError(null)
+    setCommentActionError(null)
+    setEditingCommentId(null)
+    setEditingInput('')
+  }
+
+  const handleCancelReply = (): void => {
+    setReplyTargetId(null)
+    setReplyInput('')
+  }
+
+  const handleSubmitReply = async (
+    event: FormEvent<HTMLFormElement>,
+    parentCommentId: string,
+  ): Promise<void> => {
+    event.preventDefault()
+    if (!postId) {
+      return
+    }
+
+    if (!authToken) {
+      onRequireAuth(`/posts/${postId}`)
+      return
+    }
+
+    if (replyTargetId !== parentCommentId) {
+      setReplyTargetId(parentCommentId)
+    }
+
+    const trimmed = replyInput.trim()
+    if (trimmed.length === 0) {
+      setCommentActionError('댓글 내용을 입력해 주세요.')
+      return
+    }
+
+    setCommentActionError(null)
+    setIsSubmittingReply(true)
+
+    try {
+      const created = await createComment(postId, trimmed, authToken, parentCommentId)
+      setComments((prev) => [...prev, created])
+      setReplyTargetId(null)
+      setReplyInput('')
+    } catch (err) {
+      console.error(err)
+      setCommentActionError('댓글 등록 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
+    } finally {
+      setIsSubmittingReply(false)
+    }
+  }
+
+  const handleStartEdit = (comment: PostComment): void => {
+    if (!postId) {
+      return
+    }
+
+    if (!authToken) {
+      onRequireAuth(`/posts/${postId}`)
+      return
+    }
+
+    setEditingCommentId(comment.id)
+    setEditingInput(comment.content)
+    setCommentSubmitError(null)
+    setCommentActionError(null)
+    setReplyTargetId(null)
+    setReplyInput('')
+  }
+
+  const handleCancelEdit = (): void => {
+    setEditingCommentId(null)
+    setEditingInput('')
+  }
+
+  const handleSubmitEdit = async (
+    event: FormEvent<HTMLFormElement>,
+    commentId: string,
+  ): Promise<void> => {
+    event.preventDefault()
+    if (!postId) {
+      return
+    }
+
+    if (!authToken) {
+      onRequireAuth(`/posts/${postId}`)
+      return
+    }
+
+    const trimmed = editingInput.trim()
+    if (trimmed.length === 0) {
+      setCommentActionError('댓글 내용을 입력해 주세요.')
+      return
+    }
+
+    setCommentActionError(null)
+    setIsUpdatingComment(true)
+
+    try {
+      const updated = await updateComment(postId, commentId, trimmed, authToken)
+      setComments((prev) =>
+        prev.map((comment) =>
+          comment.id === commentId
+            ? { ...comment, content: updated.content, updatedAt: updated.updatedAt }
+            : comment,
+        ),
+      )
+      setEditingCommentId(null)
+      setEditingInput('')
+    } catch (err) {
+      console.error(err)
+      setCommentActionError('댓글 수정 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
+    } finally {
+      setIsUpdatingComment(false)
     }
   }
 
@@ -273,17 +444,226 @@ function PostDetailPage({
     }
 
     setCommentSubmitError(null)
+    setCommentActionError(null)
     setDeletingCommentId(commentId)
 
     try {
       await deleteComment(postId, commentId, authToken)
-      setComments((prev) => prev.filter((comment) => comment.id !== commentId))
+      const idsToRemove = new Set<string>([commentId])
+      const stack: string[] = [commentId]
+
+      while (stack.length > 0) {
+        const current = stack.pop() as string
+        const children = repliesByParent.get(current) ?? []
+        for (const child of children) {
+          if (!idsToRemove.has(child.id)) {
+            idsToRemove.add(child.id)
+            stack.push(child.id)
+          }
+        }
+      }
+
+      setComments((prev) => prev.filter((comment) => !idsToRemove.has(comment.id)))
+
+      if (replyTargetId && idsToRemove.has(replyTargetId)) {
+        setReplyTargetId(null)
+        setReplyInput('')
+      }
+
+      if (editingCommentId && idsToRemove.has(editingCommentId)) {
+        setEditingCommentId(null)
+        setEditingInput('')
+      }
     } catch (err) {
       console.error(err)
-      setCommentSubmitError('댓글 삭제 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
+      setCommentActionError('댓글 삭제 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.')
     } finally {
       setDeletingCommentId(null)
     }
+  }
+
+  const renderCommentItem = (comment: PostComment, depth = 0): JSX.Element => {
+    const replies = repliesByParent.get(comment.id) ?? []
+    const isAuthor = currentUser?.id === comment.authorId
+    const isEditing = editingCommentId === comment.id
+    const isDeletingThis = deletingCommentId === comment.id
+    const isUpdatingThis = isUpdatingComment && editingCommentId === comment.id
+    const isReplyingHere = replyTargetId === comment.id
+    const createdText = formatCommentDate(comment.createdAt)
+    const isEdited =
+      comment.updatedAt !== undefined && comment.updatedAt !== null && comment.updatedAt !== comment.createdAt
+    const containerClass = depth > 0
+      ? 'rounded-[20px] border border-[#bad7f2]/45 bg-white/80 px-5 py-4 shadow-[0_12px_28px_-24px_rgba(31,47,95,0.18)]'
+      : 'rounded-[24px] border border-[#bad7f2]/55 bg-white/85 px-6 py-5 shadow-[0_22px_40px_-36px_rgba(31,47,95,0.2)]'
+
+    return (
+      <li key={comment.id} className={containerClass}>
+        <div className="flex flex-wrap items-center justify-between gap-4 text-[11px] uppercase tracking-[0.3em] text-[#4e6e8e]">
+          <span className="flex items-center gap-3">
+            {comment.authorAvatarUrl ? (
+              <img
+                src={comment.authorAvatarUrl}
+                alt={`${comment.author} 프로필 이미지`}
+                className="h-7 w-7 rounded-full object-cover"
+              />
+            ) : (
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#bad7f2]/60 text-[10px] font-semibold text-[#1f2f5f]">
+                {(comment.author?.slice(0, 1) ?? '?').toUpperCase()}
+              </span>
+            )}
+            <span>{comment.author ?? '알 수 없음'}</span>
+          </span>
+          <span className="flex items-center gap-2">
+            <span>{createdText}</span>
+            {isEdited ? <span className="text-[10px] lowercase text-[#7ea6cb]">(수정됨)</span> : null}
+          </span>
+        </div>
+
+        <div className="mt-4">
+          {isEditing ? (
+            <form
+              onSubmit={(event) => {
+                void handleSubmitEdit(event, comment.id)
+              }}
+              className="space-y-3"
+            >
+              <textarea
+                value={editingInput}
+                onChange={(event) => setEditingInput(event.target.value)}
+                rows={4}
+                maxLength={1000}
+                disabled={isUpdatingThis}
+                className="w-full rounded-[18px] border border-[#bad7f2]/60 bg-white/90 px-4 py-3 text-sm text-[#1f2f5f] outline-none transition focus:border-[#1f2f5f] disabled:cursor-not-allowed"
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  disabled={isUpdatingThis}
+                  className="rounded-full border border-[#bad7f2]/60 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#4e6e8e] transition hover:bg-[#bad7f2]/30 disabled:cursor-not-allowed"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingThis}
+                  className={`rounded-full px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] transition ${
+                    isUpdatingThis
+                      ? 'cursor-not-allowed border border-[#bad7f2]/60 bg-[#bad7f2]/40 text-[#7ea6cb]'
+                      : 'border border-[#bad7f2] bg-[#bad7f2] text-[#1f2f5f] hover:bg-[#a6cdef]'
+                  }`}
+                >
+                  {isUpdatingThis ? '저장 중...' : '저장'}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#36577a]">
+              {comment.content}
+            </p>
+          )}
+        </div>
+
+        {!isEditing ? (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[10px] uppercase tracking-[0.28em] text-[#4e6e8e]">
+            <div className="flex gap-2">
+              {isAuthor ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleStartEdit(comment)
+                    }}
+                    className="rounded-full border border-[#bad7f2]/60 px-3 py-1 transition hover:bg-[#bad7f2]/35"
+                  >
+                    수정
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void handleDeleteComment(comment.id)
+                    }}
+                    disabled={isDeletingThis}
+                    className={`rounded-full border px-3 py-1 transition ${
+                      isDeletingThis
+                        ? 'cursor-not-allowed border-[#bad7f2]/60 bg-[#bad7f2]/30 text-[#7ea6cb]'
+                        : 'border-red-200 text-red-600 hover:bg-red-100'
+                    }`}
+                  >
+                    {isDeletingThis ? '삭제 중...' : '삭제'}
+                  </button>
+                </>
+              ) : null}
+            </div>
+            {isReplyingHere ? (
+              <button
+                type="button"
+                onClick={handleCancelReply}
+                className="rounded-full border border-[#bad7f2]/60 px-3 py-1 transition hover:bg-[#bad7f2]/35"
+              >
+                답글 취소
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  handleStartReply(comment.id)
+                }}
+                className="rounded-full border border-[#bad7f2]/60 px-3 py-1 transition hover:bg-[#bad7f2]/35"
+              >
+                답글
+              </button>
+            )}
+          </div>
+        ) : null}
+
+        {isReplyingHere ? (
+          <form
+            onSubmit={(event) => {
+              void handleSubmitReply(event, comment.id)
+            }}
+            className="mt-5 space-y-3 rounded-[18px] border border-[#bad7f2]/55 bg-white/90 px-4 py-4"
+          >
+            <textarea
+              value={replyInput}
+              onChange={(event) => setReplyInput(event.target.value)}
+              rows={3}
+              maxLength={1000}
+              disabled={isSubmittingReply}
+              className="w-full rounded-[16px] border border-[#bad7f2]/60 bg-white/95 px-3 py-2 text-sm text-[#1f2f5f] outline-none transition focus:border-[#1f2f5f] disabled:cursor-not-allowed"
+              placeholder="답글을 남겨보세요."
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={handleCancelReply}
+                disabled={isSubmittingReply}
+                className="rounded-full border border-[#bad7f2]/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#4e6e8e] transition hover:bg-[#bad7f2]/30 disabled:cursor-not-allowed"
+              >
+                취소
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmittingReply}
+                className={`rounded-full px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] transition ${
+                  isSubmittingReply
+                    ? 'cursor-not-allowed border border-[#bad7f2]/60 bg-[#bad7f2]/40 text-[#7ea6cb]'
+                    : 'border border-[#bad7f2] bg-[#bad7f2] text-[#1f2f5f] hover:bg-[#a6cdef]'
+                }`}
+              >
+                {isSubmittingReply ? '등록 중...' : '답글 등록'}
+              </button>
+            </div>
+          </form>
+        ) : null}
+
+        {replies.length > 0 ? (
+          <ul className="mt-5 space-y-4 border-l border-[#bad7f2]/45 pl-5">
+            {replies.map((reply) => renderCommentItem(reply, depth + 1))}
+          </ul>
+        ) : null}
+      </li>
+    )
   }
 
   const headerActions = (
@@ -401,6 +781,7 @@ function PostDetailPage({
             <button
               type="button"
               onClick={() => {
+                setCommentActionError(null)
                 void loadComments()
               }}
               className="rounded-full border border-[#bad7f2]/70 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#36577a] transition hover:bg-[#bad7f2]/40"
@@ -409,6 +790,12 @@ function PostDetailPage({
               {commentsLoading ? '로딩 중' : '새로고침'}
             </button>
           </div>
+
+          {commentActionError ? (
+            <p className="mt-4 rounded-[18px] border border-red-200 bg-red-100/60 px-4 py-3 text-sm text-red-700">
+              {commentActionError}
+            </p>
+          ) : null}
 
           <div className="mt-6 space-y-4">
             {commentsLoading ? (
@@ -428,57 +815,13 @@ function PostDetailPage({
                   다시 시도
                 </button>
               </div>
-            ) : comments.length === 0 ? (
+            ) : topLevelComments.length === 0 ? (
               <div className="rounded-[24px] border border-dashed border-[#bad7f2]/55 bg-white/70 px-6 py-8 text-center text-sm text-[#36577a]">
                 아직 댓글이 없어요. 첫 댓글을 남겨보세요.
               </div>
             ) : (
               <ul className="space-y-5">
-                {comments.map((comment) => (
-                  <li
-                    key={comment.id}
-                    className="rounded-[24px] border border-[#bad7f2]/55 bg-white/85 px-6 py-5 shadow-[0_22px_40px_-36px_rgba(31,47,95,0.2)]"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-4 text-[11px] uppercase tracking-[0.3em] text-[#4e6e8e]">
-                      <span className="flex items-center gap-3">
-                        {comment.authorAvatarUrl ? (
-                          <img
-                            src={comment.authorAvatarUrl}
-                            alt={`${comment.author} 프로필 이미지`}
-                            className="h-7 w-7 rounded-full object-cover"
-                          />
-                        ) : (
-                          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#bad7f2]/60 text-[10px] font-semibold text-[#1f2f5f]">
-                            {(comment.author?.slice(0, 1) ?? '?').toUpperCase()}
-                          </span>
-                        )}
-                        <span>{comment.author ?? '알 수 없음'}</span>
-                      </span>
-                      <span>{formatCommentDate(comment.createdAt)}</span>
-                    </div>
-                    <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-[#36577a]">
-                      {comment.content}
-                    </p>
-                    {currentUser?.id === comment.authorId ? (
-                      <div className="mt-4 flex justify-end">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            void handleDeleteComment(comment.id)
-                          }}
-                          disabled={deletingCommentId === comment.id}
-                          className={`rounded-full border px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] transition ${
-                            deletingCommentId === comment.id
-                              ? 'cursor-not-allowed border-[#bad7f2]/60 bg-[#bad7f2]/30 text-[#7ea6cb]'
-                              : 'border-red-200 text-red-600 hover:bg-red-100'
-                          }`}
-                        >
-                          {deletingCommentId === comment.id ? '삭제 중...' : '삭제'}
-                        </button>
-                      </div>
-                    ) : null}
-                  </li>
-                ))}
+                {topLevelComments.map((comment) => renderCommentItem(comment))}
               </ul>
             )}
           </div>
