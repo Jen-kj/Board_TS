@@ -9,5 +9,6 @@ import { Post, PostSchema } from './schemas/post.schema'
   imports: [MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]), AuthModule],
   controllers: [PostsController],
   providers: [PostsService],
+  exports: [PostsService],
 })
 export class PostsModule {}

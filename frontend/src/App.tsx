@@ -113,13 +113,20 @@ function App(): JSX.Element {
     pendingRedirect,
   ])
 
+  const handleRequireAuth = useCallback(
+    (nextPath: string): void => {
+      setPendingRedirect(nextPath)
+      navigate(`/auth?next=${encodeURIComponent(nextPath)}`)
+    },
+    [navigate, setPendingRedirect],
+  )
+
   const handleRequestCompose = (categoryId: string): void => {
     const nextPath = `/compose${categoryId ? `?category=${categoryId}` : ''}`
     setComposeTargetCategoryId(categoryId)
 
     if (!token) {
-      setPendingRedirect(nextPath)
-      navigate(`/auth?next=${encodeURIComponent(nextPath)}`)
+      handleRequireAuth(nextPath)
       return
     }
 
@@ -129,8 +136,7 @@ function App(): JSX.Element {
   const handleRequestEdit = (postId: string): void => {
     const nextPath = `/posts/${postId}/edit`
     if (!token) {
-      setPendingRedirect(nextPath)
-      navigate(`/auth?next=${encodeURIComponent(nextPath)}`)
+      handleRequireAuth(nextPath)
       return
     }
     navigate(nextPath)
@@ -139,8 +145,7 @@ function App(): JSX.Element {
   const handleSubmitPost = async (draft: PostDraftPayload): Promise<void> => {
     if (!token) {
       const nextPath = `/compose${composeTargetCategoryId ? `?category=${composeTargetCategoryId}` : ''}`
-      setPendingRedirect(nextPath)
-      navigate(`/auth?next=${encodeURIComponent(nextPath)}`)
+      handleRequireAuth(nextPath)
       return
     }
 
@@ -173,8 +178,7 @@ function App(): JSX.Element {
   const handleUpdatePost = async (postId: string, draft: PostDraftPayload): Promise<void> => {
     if (!token) {
       const nextPath = `/posts/${postId}/edit`
-      setPendingRedirect(nextPath)
-      navigate(`/auth?next=${encodeURIComponent(nextPath)}`)
+      handleRequireAuth(nextPath)
       return
     }
     try {
@@ -198,8 +202,7 @@ function App(): JSX.Element {
   const handleDeletePost = async (postId: string): Promise<void> => {
     if (!token) {
       const nextPath = `/posts/${postId}`
-      setPendingRedirect(nextPath)
-      navigate(`/auth?next=${encodeURIComponent(nextPath)}`)
+      handleRequireAuth(nextPath)
       throw new Error('로그인이 필요합니다.')
     }
     try {
@@ -305,6 +308,8 @@ function App(): JSX.Element {
             onRequestEdit={handleRequestEdit}
             onDeletePost={handleDeletePost}
             currentUser={user ?? null}
+            authToken={token}
+            onRequireAuth={handleRequireAuth}
           />
         }
       />

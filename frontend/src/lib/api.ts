@@ -1,6 +1,17 @@
 import type { PostDraftPayload } from '../features/board/PostCompose'
 import type { PostSummary } from '../pages/HomePage'
 
+export type PostComment = {
+  id: string
+  postId: string
+  content: string
+  author: string
+  authorId: string
+  authorAvatarUrl?: string | null
+  createdAt: string
+  updatedAt?: string
+}
+
 export type AuthProvider = 'google' | 'local'
 
 export type AuthenticatedUser = {
@@ -145,6 +156,45 @@ export async function fetchCurrentUser(token: string): Promise<AuthenticatedUser
 
   const data = (await response.json()) as AuthenticatedUser
   return data
+}
+
+export async function fetchComments(postId: string): Promise<PostComment[]> {
+  const response = await fetch(`${API_BASE_URL}/posts/${postId}/comments`)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch comments: ${response.status}`)
+  }
+
+  const data = (await response.json()) as PostComment[]
+  return data
+}
+
+export async function createComment(
+  postId: string,
+  content: string,
+  token: string,
+): Promise<PostComment> {
+  const response = await fetch(`${API_BASE_URL}/posts/${postId}/comments`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ content }),
+  })
+
+  if (!response.ok) {
+    throw new Error(await extractErrorMessage(response))
+  }
+
+  return (await response.json()) as PostComment
+}
+
+export async function deleteComment(postId: string, commentId: string, token: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/posts/${postId}/comments/${commentId}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  })
+
+  if (!response.ok) {
+    throw new Error(await extractErrorMessage(response))
+  }
 }
 
 type AuthResponse = {
