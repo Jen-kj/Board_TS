@@ -53,6 +53,7 @@ export async function fetchPosts(
   limit = 6,
   categoryId?: string,
   sortBy?: 'latest' | 'popular',
+  authorId?: string,
 ): Promise<PaginatedResponse<PostSummary>> {
   const params = new URLSearchParams()
   if (search && search.trim().length > 0) {
@@ -70,6 +71,9 @@ export async function fetchPosts(
   if (sortBy) {
     params.set('sortBy', sortBy)
   }
+  if (authorId && authorId.trim().length > 0) {
+    params.set('authorId', authorId.trim())
+  }
   const queryString = params.toString()
 
   const response = await fetch(
@@ -85,34 +89,13 @@ export async function fetchPosts(
 
 export async function fetchMyPosts(
   token: string,
+  authorId: string,
   search?: string,
   page = 1,
   limit = 6,
-  categoryId?: string,
+  sortBy?: 'latest' | 'popular',
 ): Promise<PaginatedResponse<PostSummary>> {
-  const params = new URLSearchParams()
-  if (search && search.trim().length > 0) {
-    params.set('search', search.trim())
-  }
-  if (page !== undefined) {
-    params.set('page', String(page))
-  }
-  if (limit !== undefined) {
-    params.set('limit', String(limit))
-  }
-  if (categoryId && categoryId.trim().length > 0) {
-    params.set('categoryId', categoryId.trim())
-  }
-  const queryString = params.toString()
-
-  const response = await fetch(`${API_BASE_URL}/posts/me${queryString.length > 0 ? `?${queryString}` : ''}`, {
-    headers: authHeaders(token),
-  })
-  if (!response.ok) {
-    throw new Error(`Failed to fetch my posts: ${response.status}`)
-  }
-
-  return (await response.json()) as PaginatedResponse<PostSummary>
+  return fetchPosts(search, page, limit, undefined, sortBy, authorId)
 }
 
 export async function fetchPost(id: string): Promise<PostSummary> {

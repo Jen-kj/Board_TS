@@ -79,6 +79,7 @@ export class PostsService {
       page?: number
       limit?: number
       categoryId?: string
+      authorId?: string            // 내가 쓴 글
     },
   ): Promise<{
     items: PostDocument[]
@@ -100,6 +101,10 @@ export class PostsService {
 
     if (categoryId && categoryId.trim().length > 0) {
       filter.categoryId = categoryId.trim()
+    }
+
+    if (authorId && authorId.trim().length > 0) {
+      filter.authorId = authorId.trim()        // ← 추가
     }
 
     const pageNumber = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1
